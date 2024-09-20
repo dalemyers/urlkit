@@ -25,3 +25,10 @@ def test_port_invalid_value() -> None:
     with pytest.raises(ValueError):
         url_components = {"host": "example.com", "port": "foo"}
         assert_http_expected_vs_components("", url_components)
+
+
+def test_port_invalid_range() -> None:
+    """Test that we can construct URLs correctly."""
+    with pytest.raises(ValueError):
+        url_components = {"host": "example.com", "port": 100_000}
+        assert_http_expected_vs_components("", url_components)
