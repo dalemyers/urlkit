@@ -5,8 +5,6 @@ import sys
 
 import pytest
 
-from utilities import assert_http_expected_vs_components
-
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
 from urlkit.http_url import BaseHttpOrHttpsUrl, HttpsUrl, HttpUrl
