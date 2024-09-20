@@ -18,6 +18,14 @@ def test_scheme_invalid_value() -> None:
         _ = BaseHttpOrHttpsUrl(scheme="hodor", host="example.com")
 
 
+def test_schemeproperty() -> None:
+    """Test that reading back the property gives the same value."""
+    a = BaseHttpOrHttpsUrl(host="example.com", scheme="https")
+    assert a.scheme == "https"
+    a.scheme = "http"
+    assert a.scheme == "http"
+
+
 def test_repr() -> None:
     """Test that we can construct URLs correctly."""
     assert (

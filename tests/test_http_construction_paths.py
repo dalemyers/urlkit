@@ -67,3 +67,9 @@ def test_path_invalid_value() -> None:
     """Test that we can construct URLs correctly."""
     with pytest.raises(TypeError):
         _ = HttpUrl(host="example.com", path=22)  # type: ignore
+
+
+def test_path_property() -> None:
+    """Test that reading back the property gives the same value."""
+    a = HttpUrl(host="example.com", path="/section1")
+    assert a.path == "/section1"

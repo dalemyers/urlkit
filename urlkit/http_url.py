@@ -79,11 +79,6 @@ class BaseHttpOrHttpsUrl(URL):
 
         self._scheme = value
 
-    @scheme.getter
-    def scheme(self) -> str:
-        """Get the URL scheme."""
-        return self._scheme
-
     @property
     def host(self) -> str:
         """Get the URL host."""
@@ -96,11 +91,6 @@ class BaseHttpOrHttpsUrl(URL):
             raise TypeError(f"Host: Expected str, got {type(value)}")
 
         self._host = value
-
-    @host.getter
-    def host(self) -> str:
-        """Get the URL host."""
-        return self._host
 
     @property
     def port(self) -> int | str | None:
@@ -124,11 +114,6 @@ class BaseHttpOrHttpsUrl(URL):
         except ValueError as ex:
             raise ValueError(f"Port: Expected valid integer value, got {value}") from ex
 
-    @port.getter
-    def port(self) -> int | None:
-        """Get the URL port."""
-        return self._port
-
     @property
     def path(self) -> str | None:
         """Get the URL path."""
@@ -141,11 +126,6 @@ class BaseHttpOrHttpsUrl(URL):
             raise TypeError(f"Path: Expected str or None, got {type(value)}")
 
         self._path = value
-
-    @path.getter
-    def path(self) -> str | None:
-        """Get the URL path."""
-        return self._path
 
     @property
     def query(self) -> dict[str, Any] | str | None:
@@ -160,11 +140,6 @@ class BaseHttpOrHttpsUrl(URL):
 
         self._query = value
 
-    @query.getter
-    def query(self) -> dict[str, Any] | str | None:
-        """Get the URL query."""
-        return self._query
-
     @property
     def fragment(self) -> str | None:
         """Get the URL fragment."""
@@ -178,11 +153,6 @@ class BaseHttpOrHttpsUrl(URL):
 
         self._fragment = value
 
-    @fragment.getter
-    def fragment(self) -> str | None:
-        """Get the URL fragment."""
-        return self._fragment
-
     @property
     def query_options(self) -> QueryOptions | None:
         """Get the URL query options."""
@@ -195,11 +165,6 @@ class BaseHttpOrHttpsUrl(URL):
             raise TypeError(f"Query options: Expected QueryOptions got {type(value)}")
 
         self._query_options = value
-
-    @query_options.getter
-    def query_options(self) -> QueryOptions | None:
-        """Get the URL query options."""
-        return self._query_options
 
 
 class HttpUrl(BaseHttpOrHttpsUrl):

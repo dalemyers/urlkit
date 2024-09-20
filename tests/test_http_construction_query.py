@@ -10,6 +10,7 @@ from utilities import assert_http_expected_vs_components
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
 from urlkit.http_queries import QueryOptions, SpaceEncoding
+from urlkit.http_url import HttpUrl
 
 # pylint: enable=wrong-import-position
 
@@ -235,6 +236,17 @@ def test_query_parameters_invalid_space_encoding() -> None:
         assert_http_expected_vs_components("", url_components)
 
 
+def test_query_parameters_invalid_query_options_value() -> None:
+    """Test that we can construct URLs correctly."""
+    with pytest.raises(TypeError):
+        url_components = {
+            "host": "example.com",
+            "query": {"foo": "bar"},
+            "query_options": object(),  # type: ignore
+        }
+        assert_http_expected_vs_components("", url_components)
+
+
 def test_query_parameters_invalid_value_type() -> None:
     """Test that we can construct URLs correctly."""
     with pytest.raises(ValueError):
@@ -250,3 +262,75 @@ def test_query_parameters_invalid_type() -> None:
     with pytest.raises(TypeError):
         url_components = {"host": "example.com", "query": ["foo"]}
         assert_http_expected_vs_components("", url_components)
+
+
+def test_query_property() -> None:
+    """Test that reading back the property gives the same value."""
+    a = HttpUrl(host="example.com", query={"one": "1", "two": "2"})
+    assert a.query == {"one": "1", "two": "2"}
+
+
+def test_query_options_property() -> None:
+    """Test that reading back the property gives the same value."""
+    options = QueryOptions(query_separator="|")
+    a = HttpUrl(host="example.com", query_options=options)
+    assert a.query_options == options
+
+
+@pytest.mark.parametrize(
+    "a,b,expected",
+    [
+        (
+            QueryOptions(),
+            QueryOptions(),
+            True,
+        ),
+        (
+            QueryOptions(),
+            4,
+            False,
+        ),
+        (
+            QueryOptions(),
+            QueryOptions(query_joiner="|"),
+            False,
+        ),
+        (
+            QueryOptions(
+                query_separator="|",
+                query_joiner="|",
+                key_value_separator=":",
+                safe_characters="/",
+                space_encoding=SpaceEncoding.PLUS,
+            ),
+            QueryOptions(
+                query_separator="|",
+                query_joiner="|",
+                key_value_separator=":",
+                safe_characters="/",
+                space_encoding=SpaceEncoding.PLUS,
+            ),
+            True,
+        ),
+        (
+            QueryOptions(
+                query_separator="|",
+                query_joiner="|",
+                key_value_separator=":",
+                safe_characters="/",
+                space_encoding=SpaceEncoding.PLUS,
+            ),
+            QueryOptions(
+                query_separator="|",
+                query_joiner="|",
+                key_value_separator=":",
+                safe_characters="/",
+                space_encoding=SpaceEncoding.PERCENT,
+            ),
+            False,
+        ),
+    ],
+)
+def test_query_options_equality(a: QueryOptions, b: QueryOptions, expected: bool) -> None:
+    """Test that reading back the property gives the same value."""
+    assert (a == b) is expected

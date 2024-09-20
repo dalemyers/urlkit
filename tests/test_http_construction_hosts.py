@@ -30,3 +30,9 @@ def test_host_invalid_value() -> None:
     """Test that we can construct URLs correctly."""
     with pytest.raises(TypeError):
         _ = HttpUrl(host=["foo.com"])  # type: ignore
+
+
+def test_host_property() -> None:
+    """Test that reading back the property gives the same value."""
+    a = HttpUrl(host="example.com")
+    assert a.host == "example.com"

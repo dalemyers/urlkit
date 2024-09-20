@@ -35,6 +35,20 @@ class QueryOptions:
         self.safe_characters = safe_characters
         self.space_encoding = space_encoding
 
+    def __eq__(self, other: Any) -> bool:
+        """Check if two QueryOptions objects are equal."""
+
+        if not isinstance(other, QueryOptions):
+            return False
+
+        return (
+            self.query_separator == other.query_separator
+            and self.query_joiner == other.query_joiner
+            and self.key_value_separator == other.key_value_separator
+            and self.safe_characters == other.safe_characters
+            and self.space_encoding == other.space_encoding
+        )
+
 
 def encode_query(query: dict[str, Any] | str, options: QueryOptions) -> str:
     """Encode a query dictionary into a query string."""

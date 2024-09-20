@@ -1,8 +1,17 @@
 """Test the construction or URLs."""
 
+import os
+import sys
+
 import pytest
 
 from utilities import assert_http_expected_vs_components
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# pylint: disable=wrong-import-position
+from urlkit.http_url import HttpUrl
+
+# pylint: enable=wrong-import-position
 
 
 @pytest.mark.parametrize(
@@ -38,3 +47,9 @@ def test_fragment_invalid_type() -> None:
     with pytest.raises(TypeError):
         url_components = {"host": "example.com", "fragment": ["foo"]}
         assert_http_expected_vs_components("", url_components)
+
+
+def test_fragment_property() -> None:
+    """Test that reading back the property gives the same value."""
+    a = HttpUrl(host="example.com", fragment="section1")
+    assert a.fragment == "section1"
