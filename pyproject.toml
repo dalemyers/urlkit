@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "urlkit"
+version = "0.1.0"
+description = "Working with URLs using urllib is a bit of a pain. urlkit makes everything much easier."
+authors = ["Dale Myers <dale@myers.io>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[tool.poetry.group.dev.dependencies]
+black = "24.8.0"
+mypy = "1.11.2"
+pylint = "3.2.7"
+pytest = "8.3.3"
+pytest-cov = "5.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
