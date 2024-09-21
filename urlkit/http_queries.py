@@ -49,6 +49,19 @@ class QueryOptions:
             and self.space_encoding == other.space_encoding
         )
 
+    def __hash__(self) -> int:
+        """Get the hash of the QueryOptions object."""
+
+        return hash(
+            (
+                self.query_separator,
+                self.query_joiner,
+                self.key_value_separator,
+                self.safe_characters,
+                self.space_encoding,
+            )
+        )
+
 
 def encode_query(query: dict[str, Any] | str, options: QueryOptions) -> str:
     """Encode a query dictionary into a query string."""

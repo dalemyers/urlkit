@@ -66,6 +66,42 @@ class BaseHttpOrHttpsUrl(URL):
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self})"
 
+    def __eq__(self, other: object) -> bool:
+        """Check if two URL objects are equal."""
+
+        if not isinstance(other, BaseHttpOrHttpsUrl):
+            return False
+
+        return (
+            self._scheme == other.scheme
+            and self._host == other.host
+            and self._port == other.port
+            and self._path == other.path
+            and self._query == other.query
+            and self._fragment == other.fragment
+            and self._query_options == other.query_options
+        )
+
+    def __hash__(self) -> int:
+        """Get the hash of the URL object."""
+
+        if isinstance(self._query, dict):
+            query_hashable: Any = frozenset(self._query.items())
+        else:
+            query_hashable = self._query
+
+        return hash(
+            (
+                self._scheme,
+                self._host,
+                self._port,
+                self._path,
+                query_hashable,
+                self._fragment,
+                self._query_options,
+            )
+        )
+
     @property
     def scheme(self) -> str:
         """Get the URL scheme."""
