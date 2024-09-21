@@ -10,6 +10,8 @@ class BaseHttpOrHttpsUrl(URL):
     """A HTTP URL representation."""
 
     _scheme: str
+    _username: str | None
+    _password: str | None
     _host: str
     _port: int | None
     _path: str | None
@@ -17,10 +19,13 @@ class BaseHttpOrHttpsUrl(URL):
     _fragment: str | None
     _query_options: QueryOptions
 
+    # pylint: disable=too-many-arguments
     def __init__(
         self,
         *,
         scheme: str,
+        username: str | None = None,
+        password: str | None = None,
         host: str,
         port: int | str | None = None,
         path: str | None = None,
@@ -31,6 +36,8 @@ class BaseHttpOrHttpsUrl(URL):
         super().__init__()
 
         self.scheme = scheme
+        self.username = username
+        self.password = password
         self.host = host
         self.port = port
         self.path = path
@@ -38,10 +45,22 @@ class BaseHttpOrHttpsUrl(URL):
         self.fragment = fragment
         self.query_options = query_options
 
+    # pylint: enable=too-many-arguments
+
     def __str__(self) -> str:
         """Construct the URL string representation."""
 
-        output = f"{self._scheme}://{self._host}"
+        output = f"{self._scheme}://"
+
+        if self.username:
+            output += self.username
+
+            if self.password:
+                output += f":{self.password}"
+
+            output += "@"
+
+        output += self._host
 
         if self._port:
             output += f":{self._port}"
@@ -114,6 +133,26 @@ class BaseHttpOrHttpsUrl(URL):
             raise ValueError(f"Scheme: Expected 'http' or 'https', got {value}")
 
         self._scheme = value
+
+    @property
+    def username(self) -> str | None:
+        """Get the URL username."""
+        return self._username
+
+    @username.setter
+    def username(self, value: str) -> None:
+        """Set the URL username."""
+        self._username = value
+
+    @property
+    def password(self) -> str | None:
+        """Get the URL password."""
+        return self._password
+
+    @password.setter
+    def password(self, value: str) -> None:
+        """Set the URL password."""
+        self._password = value
 
     @property
     def host(self) -> str:
@@ -206,9 +245,12 @@ class BaseHttpOrHttpsUrl(URL):
 class HttpUrl(BaseHttpOrHttpsUrl):
     """A HTTP URL representation."""
 
+    # pylint: disable=too-many-arguments
     def __init__(
         self,
         *,
+        username: str | None = None,
+        password: str | None = None,
         host: str,
         port: int | str | None = None,
         path: str | None = None,
@@ -218,6 +260,8 @@ class HttpUrl(BaseHttpOrHttpsUrl):
     ) -> None:
         super().__init__(
             scheme="http",
+            username=username,
+            password=password,
             host=host,
             port=port,
             path=path,
@@ -226,13 +270,18 @@ class HttpUrl(BaseHttpOrHttpsUrl):
             query_options=query_options,
         )
 
+    # pylint: enable=too-many-arguments
+
 
 class HttpsUrl(BaseHttpOrHttpsUrl):
     """A HTTPS URL representation."""
 
+    # pylint: disable=too-many-arguments
     def __init__(
         self,
         *,
+        username: str | None = None,
+        password: str | None = None,
         host: str,
         port: int | str | None = None,
         path: str | None = None,
@@ -242,6 +291,8 @@ class HttpsUrl(BaseHttpOrHttpsUrl):
     ) -> None:
         super().__init__(
             scheme="https",
+            username=username,
+            password=password,
             host=host,
             port=port,
             path=path,
@@ -249,3 +300,5 @@ class HttpsUrl(BaseHttpOrHttpsUrl):
             fragment=fragment,
             query_options=query_options,
         )
+
+    # pylint: disable=too-many-arguments
