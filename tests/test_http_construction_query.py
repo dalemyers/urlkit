@@ -5,7 +5,7 @@ import sys
 
 import pytest
 
-from utilities import assert_http_expected_vs_components
+from utilities import assert_http_construction_expected_vs_components
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
@@ -67,7 +67,7 @@ from urlkit.http_url import HttpUrl
 )
 def test_query_parameters_simple(expected: str, url_components: dict) -> None:
     """Test that we can construct URLs correctly."""
-    assert_http_expected_vs_components(expected, url_components)
+    assert_http_construction_expected_vs_components(expected, url_components)
 
 
 @pytest.mark.parametrize(
@@ -103,7 +103,7 @@ def test_query_parameters_simple(expected: str, url_components: dict) -> None:
 )
 def test_query_parameters_types(expected: str, url_components: dict) -> None:
     """Test that we can construct URLs correctly."""
-    assert_http_expected_vs_components(expected, url_components)
+    assert_http_construction_expected_vs_components(expected, url_components)
 
 
 @pytest.mark.parametrize(
@@ -164,7 +164,7 @@ def test_query_parameters_types(expected: str, url_components: dict) -> None:
 )
 def test_query_parameters_base_encoding(expected: str, url_components: dict) -> None:
     """Test that we can construct URLs correctly."""
-    assert_http_expected_vs_components(expected, url_components)
+    assert_http_construction_expected_vs_components(expected, url_components)
 
 
 @pytest.mark.parametrize(
@@ -222,7 +222,7 @@ def test_query_parameters_base_encoding(expected: str, url_components: dict) -> 
 )
 def test_query_parameters_custom_encoding(expected: str, url_components: dict) -> None:
     """Test that we can construct URLs correctly."""
-    assert_http_expected_vs_components(expected, url_components)
+    assert_http_construction_expected_vs_components(expected, url_components)
 
 
 def test_query_parameters_invalid_space_encoding() -> None:
@@ -233,7 +233,7 @@ def test_query_parameters_invalid_space_encoding() -> None:
             "query": {"foo": "bar"},
             "query_options": QueryOptions(space_encoding="INVALID"),  # type: ignore
         }
-        assert_http_expected_vs_components("", url_components)
+        assert_http_construction_expected_vs_components("", url_components)
 
 
 def test_query_parameters_invalid_query_options_value() -> None:
@@ -244,7 +244,7 @@ def test_query_parameters_invalid_query_options_value() -> None:
             "query": {"foo": "bar"},
             "query_options": object(),  # type: ignore
         }
-        assert_http_expected_vs_components("", url_components)
+        assert_http_construction_expected_vs_components("", url_components)
 
 
 def test_query_parameters_invalid_value_type() -> None:
@@ -254,14 +254,14 @@ def test_query_parameters_invalid_value_type() -> None:
             "host": "example.com",
             "query": {"foo": object()},
         }
-        assert_http_expected_vs_components("", url_components)
+        assert_http_construction_expected_vs_components("", url_components)
 
 
 def test_query_parameters_invalid_type() -> None:
     """Test that we can construct URLs correctly."""
     with pytest.raises(TypeError):
         url_components = {"host": "example.com", "query": ["foo"]}
-        assert_http_expected_vs_components("", url_components)
+        assert_http_construction_expected_vs_components("", url_components)
 
 
 def test_query_property() -> None:

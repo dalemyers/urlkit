@@ -2,7 +2,7 @@
 
 import pytest
 
-from utilities import assert_http_expected_vs_components
+from utilities import assert_http_construction_expected_vs_components
 
 
 @pytest.mark.parametrize(
@@ -92,7 +92,7 @@ from utilities import assert_http_expected_vs_components
 )
 def test_full(expected: str, url_components: dict) -> None:
     """Test that we can construct URLs correctly."""
-    assert_http_expected_vs_components(expected, url_components)
+    assert_http_construction_expected_vs_components(expected, url_components)
 
 
 @pytest.mark.parametrize(
@@ -109,4 +109,4 @@ def test_full(expected: str, url_components: dict) -> None:
 )
 def test_full_edge_cases(expected: str, url_components: dict) -> None:
     """Test that we can construct URLs correctly."""
-    assert_http_expected_vs_components(expected, url_components)
+    assert_http_construction_expected_vs_components(expected, url_components)

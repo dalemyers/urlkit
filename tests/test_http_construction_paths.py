@@ -5,7 +5,7 @@ import sys
 
 import pytest
 
-from utilities import assert_http_expected_vs_components
+from utilities import assert_http_construction_expected_vs_components
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
@@ -60,7 +60,7 @@ from urlkit.http_url import HttpUrl
 )
 def test_paths(expected: str, url_components: dict) -> None:
     """Test that we can construct URLs correctly."""
-    assert_http_expected_vs_components(expected, url_components)
+    assert_http_construction_expected_vs_components(expected, url_components)
 
 
 def test_path_invalid_value() -> None:
