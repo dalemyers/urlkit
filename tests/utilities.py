@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-from urlkit import HttpUrl
+from urlkit.http_url import HttpUrl, BaseHttpOrHttpsUrl, QueryOptions
 
 
 def assert_http_construction_expected_vs_components(expected: str, url_components: dict) -> None:
@@ -14,3 +14,12 @@ def assert_http_construction_expected_vs_components(expected: str, url_component
     url = HttpUrl(**url_components)
     constructed = str(url)
     assert constructed == expected, f"Expected {expected}, got {constructed}"
+
+
+def assert_http_parse_expected_vs_url(url: str, expected: dict) -> None:
+    """Test that we can construct URLs correctly."""
+
+    expected_constructed = BaseHttpOrHttpsUrl(**expected)
+    query_options = expected.get("query_options", None)
+    parsed = BaseHttpOrHttpsUrl.parse(url, query_options or QueryOptions())
+    assert expected_constructed == parsed, f"Expected {expected}, got {expected_constructed}"

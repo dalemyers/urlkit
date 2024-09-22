@@ -63,11 +63,8 @@ class QueryOptions:
         )
 
 
-def encode_query(query: dict[str, Any] | str, options: QueryOptions) -> str:
+def encode_query(query: dict[str, Any], options: QueryOptions) -> str:
     """Encode a query dictionary into a query string."""
-
-    if isinstance(query, str):
-        return query
 
     encoded_values = []
 
@@ -101,3 +98,15 @@ def encode_query(query: dict[str, Any] | str, options: QueryOptions) -> str:
         encoded_values.append(f"{encoded_key}{options.key_value_separator}{encoded_value}")
 
     return options.query_joiner.join(encoded_values)
+
+
+def decode_query_value(value: str, options: QueryOptions) -> str:
+    """Decode a query value."""
+
+    if options.space_encoding == SpaceEncoding.PERCENT:
+        return urllib.parse.unquote(value)
+
+    if options.space_encoding == SpaceEncoding.PLUS:
+        return urllib.parse.unquote_plus(value)
+
+    raise ValueError(f"Space Encoding: Expected valid SpaceEncoding, got {options.space_encoding}")

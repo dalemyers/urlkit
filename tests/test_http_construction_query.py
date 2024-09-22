@@ -218,6 +218,14 @@ def test_query_parameters_base_encoding(expected: str, url_components: dict) -> 
                 "query_options": QueryOptions(space_encoding=SpaceEncoding.PLUS),
             },
         ),
+        (
+            "http://example.com/?foo=bar+baz",
+            {
+                "host": "example.com",
+                "query": "foo=bar baz",
+                "query_options": QueryOptions(space_encoding=SpaceEncoding.PLUS),
+            },
+        ),
     ],
 )
 def test_query_parameters_custom_encoding(expected: str, url_components: dict) -> None:
@@ -231,6 +239,14 @@ def test_query_parameters_invalid_space_encoding() -> None:
         url_components = {
             "host": "example.com",
             "query": {"foo": "bar"},
+            "query_options": QueryOptions(space_encoding="INVALID"),  # type: ignore
+        }
+        assert_http_construction_expected_vs_components("", url_components)
+
+    with pytest.raises(ValueError):
+        url_components = {
+            "host": "example.com",
+            "query": "foo=bar",
             "query_options": QueryOptions(space_encoding="INVALID"),  # type: ignore
         }
         assert_http_construction_expected_vs_components("", url_components)

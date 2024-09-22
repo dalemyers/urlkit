@@ -1,9 +1,9 @@
 """URL utility library."""
 
-from typing import Any
+from typing import Any, cast, Union
 
 from .url import URL
-from .http_queries import encode_query, QueryOptions
+from .http_queries import encode_query, QueryOptions, decode_query_value
 
 
 class BaseHttpOrHttpsUrl(URL):
@@ -15,7 +15,7 @@ class BaseHttpOrHttpsUrl(URL):
     _host: str
     _port: int | None
     _path: str | None
-    _query: dict[str, Any] | str | None
+    _query: dict[str, Any] | None
     _fragment: str | None
     _query_options: QueryOptions
 
@@ -41,9 +41,10 @@ class BaseHttpOrHttpsUrl(URL):
         self.host = host
         self.port = port
         self.path = path
-        self.query = query
-        self.fragment = fragment
+        # Needs to be set before query as we use it in the query setter
         self.query_options = query_options
+        self.query = query  # type: ignore
+        self.fragment = fragment
 
     # pylint: enable=too-many-arguments
 
@@ -203,7 +204,7 @@ class BaseHttpOrHttpsUrl(URL):
         self._path = value
 
     @property
-    def query(self) -> dict[str, Any] | str | None:
+    def query(self) -> dict[str, Any] | None:
         """Get the URL query."""
         return self._query
 
@@ -213,7 +214,27 @@ class BaseHttpOrHttpsUrl(URL):
         if value is not None and not isinstance(value, dict) and not isinstance(value, str):
             raise TypeError(f"Query: Expected dict, str, or None, got {type(value)}")
 
-        self._query = value
+        if value is None or isinstance(value, dict):
+            self._query = value
+            return
+
+        # If it's a string, we need to parse it into a dict.
+
+        components = value.split(self.query_options.query_joiner)
+
+        query_dict: dict[str, Any] = {}
+
+        for component in components:
+            key_value = component.split(self.query_options.key_value_separator, maxsplit=1)
+
+            key = decode_query_value(key_value[0], self.query_options)
+
+            if len(key_value) == 1:
+                query_dict[key] = None
+            else:
+                query_dict[key] = decode_query_value(key_value[1], self.query_options)
+
+        self._query = query_dict
 
     @property
     def fragment(self) -> str | None:
@@ -229,7 +250,7 @@ class BaseHttpOrHttpsUrl(URL):
         self._fragment = value
 
     @property
-    def query_options(self) -> QueryOptions | None:
+    def query_options(self) -> QueryOptions:
         """Get the URL query options."""
         return self._query_options
 
@@ -240,6 +261,19 @@ class BaseHttpOrHttpsUrl(URL):
             raise TypeError(f"Query options: Expected QueryOptions got {type(value)}")
 
         self._query_options = value
+
+    @classmethod
+    def parse(
+        cls, string: str, query_options: QueryOptions = QueryOptions()
+    ) -> Union["HttpUrl", "HttpsUrl"]:
+        """Parse a URL string into a URL object."""
+
+        result = parse_http_or_https_url(string, query_options)
+
+        if result.scheme == "http":
+            return cast(HttpUrl, result)
+
+        return cast(HttpsUrl, result)
 
 
 class HttpUrl(BaseHttpOrHttpsUrl):
@@ -272,6 +306,15 @@ class HttpUrl(BaseHttpOrHttpsUrl):
 
     # pylint: enable=too-many-arguments
 
+    @classmethod
+    def parse(cls, string: str, query_options: QueryOptions = QueryOptions()) -> "HttpUrl":
+        """Parse a URL string into a URL object."""
+
+        if not string.startswith("http://"):
+            raise ValueError("URL: Expected 'http://' prefix")
+
+        return cast(HttpUrl, BaseHttpOrHttpsUrl.parse(string, query_options))
+
 
 class HttpsUrl(BaseHttpOrHttpsUrl):
     """A HTTPS URL representation."""
@@ -302,3 +345,138 @@ class HttpsUrl(BaseHttpOrHttpsUrl):
         )
 
     # pylint: disable=too-many-arguments
+
+    @classmethod
+    def parse(cls, string: str, query_options: QueryOptions = QueryOptions()) -> "HttpsUrl":
+        """Parse a URL string into a URL object."""
+
+        if not string.startswith("https://"):
+            raise ValueError("URL: Expected 'https://' prefix")
+
+        return cast(HttpsUrl, BaseHttpOrHttpsUrl.parse(string, query_options))
+
+
+# pylint: disable=too-many-branches
+def parse_http_or_https_url(
+    value: str, query_options: QueryOptions = QueryOptions()
+) -> BaseHttpOrHttpsUrl:
+    """Parse a HTTP or HTTPS URL."""
+
+    # This comes from https://datatracker.ietf.org/doc/html/rfc1738
+    # There are some liberties taken. For example, according to their BNF
+    # grammar, you can't have a username and password for a HTTP(s) url, only
+    # for FTP, etc. And HTTPS doesn't event exist in the spec yet.
+
+    # TODO: This can probably be made much more efficient
+
+    # Anything at the start we know is the scheme.
+    if value.startswith("http://"):
+        scheme = "http"
+        value = value[7:]
+    elif value.startswith("https://"):
+        scheme = "https"
+        value = value[8:]
+    else:
+        raise ValueError("URL: Expected 'http://' or 'https://' prefix")
+
+    # Anything at the end after a # we know is the fragment.
+    fragment_index = value.find("#")
+
+    if fragment_index != -1:
+        fragment = value[fragment_index + 1 :]
+        value = value[:fragment_index]
+    else:
+        fragment = None
+
+    # We assume there are no characters in the query that also match the query
+    # separator (usually ?).
+
+    query_index = value.rfind(query_options.query_separator)
+
+    if query_index != -1:
+        query = value[query_index + 1 :]
+        value = value[:query_index]
+    else:
+        query = None
+
+    # Now we assume there are no `@` characters in the host, port or login
+    # details. This isn't necessarily true, but it's a good assumption for now.
+
+    login_index = value.find("@")
+
+    if login_index != -1:
+        login = value[:login_index]
+        value = value[login_index + 1 :]
+    else:
+        login = None
+
+    host = value
+
+    # If we have a login, we still need to split into username and password (if
+    # there is a password).
+    if login:
+        password_index = login.find(":")
+
+        if password_index != -1:
+            password = login[password_index + 1 :]
+            username = login[:password_index]
+        else:
+            username = login
+            password = None
+    else:
+        username = None
+        password = None
+
+    # Now it gets a little trickier. There may be a `:` for the port, but this
+    # also often appears in the path. We need to check if it's a port or not.
+
+    # We assume that if it appears before the first `/` then it's a port,
+    # otherwise it's part of the path.
+
+    path_index = value.find("/")
+    port_index = value.find(":")
+
+    def get_port(port_string: str) -> int | None:
+        try:
+            return int(port_string)
+        except ValueError:
+            return None
+
+    if port_index == -1 and path_index == -1:
+        port = None
+        path = None
+        host = value
+    elif port_index == -1 and path_index != -1:
+        port = None
+        path = value[path_index:]
+        host = value[:path_index]
+    elif port_index != -1 and path_index == -1:
+        port_string = value[port_index + 1 :]
+        port = get_port(port_string)
+        path = None
+        host = value[:port_index]
+    else:
+        if port_index < path_index:
+            port_string = value[port_index + 1 : path_index]
+            port = get_port(port_string)
+            path = value[path_index:]
+            host = value[:port_index]
+        else:
+            port = None
+            path = value[path_index:]
+            host = value[:path_index]
+
+    return BaseHttpOrHttpsUrl(
+        scheme=scheme,
+        username=username,
+        password=password,
+        host=host,
+        port=port,
+        path=path,
+        query=query,
+        fragment=fragment,
+        query_options=query_options,
+    )
+
+
+# pylint: enable=too-many-branches

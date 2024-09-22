@@ -1,0 +1,625 @@
+URL: {
+    "expected": {"stdout": "http://example.com/\n", "stderr": "", "returncode": 0},
+    "arguments": ["example.com"],
+}
+URL: {
+    "expected": {"stdout": "http://example.com/\n", "stderr": "", "returncode": 0},
+    "arguments": ["http://example.com"],
+}
+URL: {
+    "expected": {"stdout": "https://example.com/\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://example.com"],
+}
+URL: {
+    "expected": {"stdout": "hp://example.com/\n", "stderr": "", "returncode": 0},
+    "arguments": ["hp://example.com"],
+}
+URL: {
+    "expected": {"stdout": "ftp://ftp.example.com/\n", "stderr": "", "returncode": 0},
+    "arguments": ["ftp.example.com"],
+}
+URL: {
+    "expected": {"stdout": "https://example.com/moo\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://example.com/../moo"],
+}
+URL: {
+    "expected": {"stdout": "https://example.com/moo\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://example.com/.././moo"],
+}
+URL: {
+    "expected": {"stdout": "https://example.com/moo\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://example.com/test/../moo"],
+}
+URL: {
+    "expected": {"stdout": "http://localhost/moo\n", "stderr": "", "returncode": 0},
+    "arguments": ["localhost", "--append", "path=moo"],
+}
+URL: {
+    "expected": {"stdout": "http://localhost/moo\n", "stderr": "", "returncode": 0},
+    "arguments": ["localhost", "-a", "path=moo"],
+}
+URL: {
+    "expected": {"stdout": "http://localhost/?hello=foo\n", "stderr": "", "returncode": 0},
+    "arguments": ["localhost", "--append", "query=hello=foo"],
+}
+URL: {
+    "expected": {"stdout": "http://localhost/?hello=foo\n", "stderr": "", "returncode": 0},
+    "arguments": ["localhost", "-a", "query=hello=foo"],
+}
+URL: {
+    "expected": {"stdout": "https://example.com/?search=hello\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://example.com?search=hello&utm_source=tracker", "--trim", "query=utm_*"],
+}
+URL: {
+    "expected": {"stdout": "https://example.com/?search=hello\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://example.com?search=hello&utm_source=tracker", "--qtrim", "utm_*"],
+}
+URL: {
+    "expected": {
+        "stdout": "https://example.com/?search=hello&more=data\n",
+        "stderr": "",
+        "returncode": 0,
+    },
+    "arguments": [
+        "https://example.com?search=hello&utm_source=tracker&more=data",
+        "--trim",
+        "query=utm_*",
+    ],
+}
+URL: {
+    "expected": {
+        "stdout": "https://example.com/?search=hello&more=data\n",
+        "stderr": "",
+        "returncode": 0,
+    },
+    "arguments": [
+        "https://example.com?search=hello&utm_source=tracker&more=data",
+        "--qtrim",
+        "utm_*",
+    ],
+}
+URL: {
+    "expected": {
+        "stdout": "https://example.com/?search=hello&more=data\n",
+        "stderr": "",
+        "returncode": 0,
+    },
+    "arguments": ["https://example.com?search=hello&more=data", "--qtrim", "utm_*"],
+}
+URL: {
+    "expected": {"stdout": "https://example.com/\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://example.com?utm_source=tracker", "--trim", "query=utm_*"],
+}
+URL: {
+    "expected": {
+        "stdout": "https://example.com/?search=hello&more=data\n",
+        "stderr": "",
+        "returncode": 0,
+    },
+    "arguments": [
+        "https://example.com?search=hello&utm_source=tracker&more=data",
+        "--qtrim",
+        "utm_source",
+    ],
+}
+URL: {
+    "expected": {"stdout": "https://example.com/\n", "stderr": "", "returncode": 0},
+    "arguments": [
+        "https://example.com?search=hello&utm_source=tracker&more=data",
+        "--qtrim",
+        "utm_source",
+        "--qtrim",
+        "more",
+        "--qtrim",
+        "search",
+    ],
+}
+URL: {
+    "expected": {"stdout": "https://curl.se/\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://daniel@curl.se:22/", "-s", "port=", "-s", "user="],
+}
+URL: {
+    "expected": {"stdout": "https://example.com/?moo\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://example.com?moo&search=hello", "--qtrim", "search"],
+}
+URL: {
+    "expected": {"stdout": "https://example.com/?moo\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://example.com?search=hello&moo", "--qtrim", "search"],
+}
+URL: {
+    "expected": {"stdout": "https://example.com/?moo\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://example.com?search=hello", "--qtrim", "search", "--append", "query=moo"],
+}
+URL: {
+    "expected": {"stdout": "ftp://hello:443/foo\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://hello:443/foo", "-s", "scheme=ftp"],
+}
+URL: {
+    "expected": {"stdout": "tra cker\n", "stderr": "", "returncode": 0},
+    "arguments": [
+        "https://example.com?utm_source=tra%20cker&address%20=home&here=now&thisthen",
+        "-g",
+        "{query:utm_source}",
+    ],
+}
+URL: {
+    "expected": {"stdout": "tra+cker\n", "stderr": "", "returncode": 0},
+    "arguments": [
+        "https://example.com?utm_source=tra%20cker&address%20=home&here=now&thisthen",
+        "-g",
+        "{:query:utm_source}",
+    ],
+}
+URL: {
+    "expected": {"stdout": "\n", "stderr": "", "returncode": 0},
+    "arguments": [
+        "https://example.com?utm_source=tra%20cker&address%20=home&here=now&thisthen",
+        "-g",
+        "{:query:utm_}",
+    ],
+}
+URL: {
+    "expected": {"stdout": "\n", "stderr": "", "returncode": 0},
+    "arguments": [
+        "https://example.com?utm_source=tra%20cker&address%20=home&here=now&thisthen",
+        "-g",
+        "{:query:UTM_SOURCE}",
+    ],
+}
+URL: {
+    "expected": {
+        "stdout": "https://example.com/?monkey=123&utm_source=tracker\n",
+        "stderr": "",
+        "returncode": 0,
+    },
+    "arguments": ["https://example.com?utm_source=tracker&monkey=123", "--sort-query"],
+}
+URL: {
+    "expected": {"stdout": "https://example.com/?a=b&c=d\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://example.com?a=b&c=d&", "--sort-query"],
+}
+URL: {
+    "expected": {"stdout": "https://example.com/?c=d\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://example.com?a=b&c=d&", "--sort-query", "--trim", "query=a"],
+}
+URL: {
+    "expected": {"stdout": "http://example.com/\n", "stderr": "", "returncode": 0},
+    "arguments": ["example.com:29", "--set", "port="],
+}
+URL: {
+    "expected": {
+        "stdout": "https://example.com/?address+=home:here=now:thisthen:utm=tra+cker\n",
+        "stderr": "",
+        "returncode": 0,
+    },
+    "arguments": [
+        "https://example.com?utm=tra%20cker:address%20=home:here=now:thisthen",
+        "--sort-query",
+        "--query-separator",
+        ":",
+    ],
+}
+URL: {
+    "expected": {"stdout": "http://foo/?a=bCe=f\n", "stderr": "", "returncode": 0},
+    "arguments": ["foo?a=bCd=eCe=f", "--query-separator", "C", "--trim", "query=d"],
+}
+URL: {
+    "expected": {"stderr": "", "returncode": 0, "stdout": "http {host\n"},
+    "arguments": ["localhost", "-g", "{scheme} {host"],
+}
+URL: {
+    "expected": {"stderr": "", "returncode": 0, "stdout": "http [host\n"},
+    "arguments": ["localhost", "-g", "[scheme] [host"],
+}
+URL: {
+    "expected": {"stderr": "", "returncode": 0, "stdout": "{http[\n"},
+    "arguments": ["localhost", "-g", "\\{{scheme}\\["],
+}
+URL: {
+    "expected": {"stderr": "", "returncode": 0, "stdout": "\\[\n"},
+    "arguments": ["localhost", "-g", "\\\\["],
+}
+URL: {
+    "expected": {"stderr": "", "returncode": 0, "stdout": "httpsusmoo\n"},
+    "arguments": ["https://u:s@foo?moo", "-g", "[scheme][user][password][query]"],
+}
+URL: {
+    "expected": {"stderr": "", "returncode": 0, "stdout": "b c d\n"},
+    "arguments": ["hej?a=b&a=c&a=d&b=a", "-g", "{query-all:a}"],
+}
+URL: {
+    "expected": {"stderr": "", "returncode": 0, "stdout": "mr.smith\n"},
+    "arguments": ["https://curl.se?name=mr%00smith", "--get", "{query:name}"],
+}
+URL: {
+    "expected": {"returncode": 0, "stdout": "port: 8080, default:port: 8080\n"},
+    "arguments": [
+        "http://example.com:8080/",
+        "--get",
+        "port: {port}, default:port: {default:port}",
+    ],
+}
+URL: {
+    "expected": {"stdout": "http://test.org/?key=foo\n", "stderr": "", "returncode": 0},
+    "arguments": ["http://test.org/?key=val", "--replace", "key=foo"],
+}
+URL: {
+    "expected": {"stdout": "http://test.org/?that=thing&key=foo\n", "stderr": "", "returncode": 0},
+    "arguments": ["http://test.org/?that=thing&key=val", "--replace", "key=foo"],
+}
+URL: {
+    "expected": {"stdout": "http://test.org/?that=thing&key=foo\n", "stderr": "", "returncode": 0},
+    "arguments": ["http://test.org/?that=thing&key", "--replace", "key=foo"],
+}
+URL: {
+    "expected": {"stdout": "http://test.org/?that=thing&key\n", "stderr": "", "returncode": 0},
+    "arguments": ["http://test.org/?that=thing&key=foo", "--replace", "key"],
+}
+URL: {
+    "expected": {"stdout": "https://example.com/?a=123&b=foo\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://example.com?a=123&b=321&b=987", "--replace", "b=foo"],
+}
+URL: {
+    "expected": {
+        "stderr": "trurl error: No data passed to replace component\ntrurl error: Try trurl -h for help\n",
+        "stdout": "",
+        "returncode": 12,
+    },
+    "arguments": ["example.com", "--replace"],
+}
+URL: {
+    "expected": {"stdout": "http://test.org/?that=thing&key=foo\n", "stderr": "", "returncode": 0},
+    "arguments": ["http://test.org/?that=thing", "--force-replace", "key=foo"],
+}
+URL: {
+    "expected": {"stdout": "http://test.org/?that=thing&key=foo\n", "stderr": "", "returncode": 0},
+    "arguments": ["http://test.org/?that=thing", "--replace-append", "key=foo"],
+}
+URL: {
+    "expected": {
+        "stdout": "http://0.0.0.0/?00%000000000000000000000=0000000000\n",
+        "stderr": "",
+        "returncode": 0,
+    },
+    "arguments": ["0?00%000000000000000000000=0000000000"],
+}
+URL: {
+    "expected": {"stdout": "http://[::1]/\n", "stderr": "", "returncode": 0},
+    "arguments": ["example.com", "--set", "host=[::1]"],
+}
+URL: {
+    "expected": {"stdout": "http://example.com:88/\n", "stderr": "", "returncode": 0},
+    "arguments": ["example.com:88", "--set", "port?=99"],
+}
+URL: {
+    "expected": {"stdout": "http://example.com:99/\n", "stderr": "", "returncode": 0},
+    "arguments": ["example.com", "--set", "port?=99"],
+}
+URL: {
+    "expected": {"stdout": "http://example.com/add/two\n", "stderr": "", "returncode": 0},
+    "arguments": ["example.com", "--append", "path=add", "--append", "path=two"],
+}
+URL: {
+    "expected": {
+        "stderr": "trurl note: URL decode error, most likely because of rubbish in the input (query)\n",
+        "returncode": 0,
+        "stdout": "\n",
+    },
+    "arguments": ["https://curl.se?name=mr%00smith", "--get", "{query}"],
+}
+URL: {
+    "expected": {
+        "stderr": "trurl error: problems URL decoding query\ntrurl error: Try trurl -h for help\n",
+        "returncode": 10,
+        "stdout": "",
+    },
+    "arguments": ["https://curl.se?name=mr%00smith", "--get", "{strict:query}"],
+}
+URL: {
+    "expected": {"stdout": "ftp://example.com/\n", "stderr": "", "returncode": 0},
+    "arguments": ["ftp://example.com", "--set", "scheme?=https"],
+}
+URL: {
+    "expected": {"stdout": "https://example.com/one/tao/%2fB/\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://example.com/one/t%61o/%2F%42/"],
+}
+URL: {
+    "expected": {
+        "stdout": "https://example.com/one/tao/%2fB/%2561\n",
+        "stderr": "",
+        "returncode": 0,
+    },
+    "arguments": ["https://example.com/one/t%61o/%2F%42/", "--append", "path=%61"],
+}
+URL: {
+    "expected": {"stdout": "https://example.com/has/?what\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://ex%61mple.com/h%61s/?wh%61t"],
+}
+URL: {
+    "expected": {
+        "stdout": "",
+        "stderr": "trurl error: missing must:query\ntrurl error: Try trurl -h for help\n",
+        "returncode": 10,
+    },
+    "arguments": ["https://example.com/", "--get", "{must:query}"],
+}
+URL: {
+    "expected": {
+        "stdout": "",
+        "stderr": "trurl error: missing must:fragment\ntrurl error: Try trurl -h for help\n",
+        "returncode": 10,
+    },
+    "arguments": ["https://example.com/", "--get", "{must:fragment}"],
+}
+URL: {
+    "expected": {"stdout": "/\x18\n", "stderr": "", "returncode": 0},
+    "arguments": ["http://example.org/%18", "--get", "{path}"],
+}
+URL: {
+    "expected": {"stdout": "http://example.org/?a=&b=1\n", "stderr": "", "returncode": 0},
+    "arguments": ["http://example.org/?a=&b=1"],
+}
+URL: {
+    "expected": {"stdout": "http://example.org/?a=1&b=\n", "stderr": "", "returncode": 0},
+    "arguments": ["http://example.org/?a=1&b="],
+}
+URL: {
+    "expected": {"stdout": "http://example.org/?a=1&b=&c=2\n", "stderr": "", "returncode": 0},
+    "arguments": ["http://example.org/?a=1&b=&c=2"],
+}
+URL: {
+    "expected": {"stdout": "http://example.org/?=1&b=2&c=&=3\n", "stderr": "", "returncode": 0},
+    "arguments": ["http://example.org/?=1&b=2&c=&=3"],
+}
+URL: {
+    "expected": {"stdout": "http://example.com/?a=%5d\n", "stderr": "", "returncode": 0},
+    "arguments": ["http://example.com/?a=%5D"],
+}
+URL: {
+    "expected": {"stdout": "http://example.com/?a=%5d&b=%5d\n", "stderr": "", "returncode": 0},
+    "arguments": ["http://example.com/?a=%5D&b=%5D"],
+}
+URL: {
+    "expected": {"stdout": "sftp://user:pwd%3bgiraffe@odd/\n", "stderr": "", "returncode": 0},
+    "arguments": ["sftp://us%65r:pwd;giraffe@odd"],
+}
+URL: {
+    "expected": {"stdout": "imap://user:pwd;girAffe@odd/\n", "stderr": "", "returncode": 0},
+    "arguments": ["imap://us%65r:pwd;gir%41ffe@odd"],
+}
+URL: {
+    "expected": {"stdout": "pwd;giraffe\n", "stderr": "", "returncode": 0},
+    "arguments": ["sftp://us%65r:pwd;giraffe@odd", "--get", "[password]"],
+}
+URL: {
+    "expected": {"stdout": "pwd%3bgiraffe\n", "stderr": "", "returncode": 0},
+    "arguments": ["sftp://us%65r:pwd;giraffe@odd", "--get", "[:password]"],
+}
+URL: {
+    "expected": {
+        "stdout": "",
+        "stderr": "trurl error: duplicate --set for component port\ntrurl error: Try trurl -h for help\n",
+        "returncode": 5,
+    },
+    "arguments": ["sftp://odd", "--set", "port=144", "--set", "port=145"],
+}
+URL: {
+    "expected": {
+        "stdout": "",
+        "stderr": "trurl error: only one --get is supported\ntrurl error: Try trurl -h for help\n",
+        "returncode": 4,
+    },
+    "arguments": ["sftp://odd", "--get", "[port]", "--get", "{port}"],
+}
+URL: {
+    "expected": {
+        "stdout": "",
+        "stderr": "trurl error: Missing argument for --set\ntrurl error: Try trurl -h for help\n",
+        "returncode": 3,
+    },
+    "arguments": ["url", "--set"],
+}
+URL: {
+    "expected": {
+        "stdout": "",
+        "stderr": "trurl error: Missing argument for --redirect\ntrurl error: Try trurl -h for help\n",
+        "returncode": 3,
+    },
+    "arguments": ["url", "--redirect"],
+}
+URL: {
+    "expected": {
+        "stdout": "",
+        "stderr": "trurl error: Missing argument for --get\ntrurl error: Try trurl -h for help\n",
+        "returncode": 3,
+    },
+    "arguments": ["url", "--get"],
+}
+URL: {
+    "expected": {
+        "stdout": "",
+        "stderr": "trurl error: No data passed to replace component\ntrurl error: Try trurl -h for help\n",
+        "returncode": 12,
+    },
+    "arguments": ["url", "--replace"],
+}
+URL: {
+    "expected": {
+        "stdout": "",
+        "stderr": "trurl error: No data passed to replace component\ntrurl error: Try trurl -h for help\n",
+        "returncode": 12,
+    },
+    "arguments": ["url", "--replace-append"],
+}
+URL: {
+    "expected": {
+        "stdout": "",
+        "stderr": "trurl error: Missing argument for --append\ntrurl error: Try trurl -h for help\n",
+        "returncode": 3,
+    },
+    "arguments": ["url", "--append"],
+}
+URL: {
+    "expected": {
+        "stdout": "",
+        "stderr": "trurl error: only single-letter query separators are supported\ntrurl error: Try trurl -h for help\n",
+        "returncode": 4,
+    },
+    "arguments": ["url", "--query-separator", "''"],
+}
+URL: {
+    "expected": {
+        "stdout": "",
+        "stderr": "trurl error: only single-letter query separators are supported\ntrurl error: Try trurl -h for help\n",
+        "returncode": 4,
+    },
+    "arguments": ["url", "--query-separator", "aa"],
+}
+URL: {
+    "expected": {"stdout": "https://example.com/\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://curl.se", "--set", "host=example.com"],
+}
+URL: {
+    "expected": {"stdout": "https://curl.se/we/here.html\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://curl.se/we/are.html", "--redirect", "here.html"],
+}
+URL: {
+    "expected": {"stdout": "https://curl.se:8080/are.html\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://curl.se/we/../are.html", "--set", "port=8080"],
+}
+URL: {
+    "expected": {"stdout": "/we/are.html\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://curl.se/we/are.html", "--get", "{path}"],
+}
+URL: {
+    "expected": {"stdout": "/we/are.html\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://curl.se/we/are.html", "-g{path}"],
+}
+URL: {
+    "expected": {"stdout": "https\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://curl.se/we/are.html", "--get", "{scheme}"],
+}
+URL: {
+    "expected": {"stdout": "https\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://curl.se/we/are.html", "--get", "{:scheme}"],
+}
+URL: {
+    "expected": {"stdout": "55\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://curl.se:55/we/are.html", "--get", "{url:port}"],
+}
+URL: {
+    "expected": {"stdout": "/.a%13\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://curl.se/%2e%61%13", "--get", "{:path}"],
+}
+URL: {
+    "expected": {"stdout": ".a%13\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://curl.se?%2e%61%13", "--get", "{:query}"],
+}
+URL: {
+    "expected": {"stdout": ".a%13\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://curl.se/#%2e%61%13", "--get", "{:fragment}"],
+}
+URL: {
+    "expected": {"stdout": "https://example.com/#.a%13%fa\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://example.com/#%2e%61%13%Fa"],
+}
+URL: {
+    "expected": {"stdout": "hello\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://hello@curl.se/we/are.html", "--get", "{user}"],
+}
+URL: {
+    "expected": {"stdout": "secret\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://hello:secret@curl.se/we/are.html", "--get", "{password}"],
+}
+URL: {
+    "expected": {"stdout": "curl.se\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://curl.se/we/are.html", "--get", "{host}"],
+}
+URL: {
+    "expected": {"stdout": "euth0\n", "stderr": "", "returncode": 0},
+    "arguments": [
+        "https://[fe80::0000:20c:29ff:fe9c:409b%euth0]:8080/we/are.html",
+        "--get",
+        "{zoneid}",
+    ],
+}
+URL: {
+    "expected": {"stdout": "eth0\n", "stderr": "", "returncode": 0},
+    "arguments": [
+        "https://[fe80::0000:20c:29ff:fe9c:409b%eth0]:8080/we/are.html",
+        "--get",
+        "{zoneid}",
+    ],
+}
+URL: {
+    "expected": {"stdout": "user=many\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://curl.se/we/are.html?user=many#more", "--get", "{query}"],
+}
+URL: {
+    "expected": {"stdout": "more\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://curl.se/we/are.html?user=many#more", "--get", "{fragment}"],
+}
+URL: {
+    "expected": {"stdout": "https://curl.se/hello/you\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://curl.se/hello", "--append", "path=you"],
+}
+URL: {
+    "expected": {
+        "stdout": "https://curl.se/hello/you%20index.html\n",
+        "stderr": "",
+        "returncode": 0,
+    },
+    "arguments": ["https://curl.se/hello", "--append", "path=you index.html"],
+}
+URL: {
+    "expected": {
+        "stdout": "https://curl.se/?name=hello&search=string\n",
+        "stderr": "",
+        "returncode": 0,
+    },
+    "arguments": ["https://curl.se?name=hello", "--append", "query=search=string"],
+}
+URL: {
+    "expected": {"stdout": "https://%3ahej%3a@curl.se/hello\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://curl.se/hello", "--set", "user=:hej:"],
+}
+URL: {
+    "expected": {"stdout": "https://hej:secret@curl.se/hello\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://curl.se/hello", "--set", "user=hej", "--set", "password=secret"],
+}
+URL: {
+    "expected": {"stdout": "https://curl.se/hello?user=me\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://curl.se/hello", "--set", "query:=user=me"],
+}
+URL: {
+    "expected": {"stdout": "https://curl.se/hello?user%3dme\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://curl.se/hello", "--set", "query=user=me"],
+}
+URL: {
+    "expected": {"stdout": "https://curl.se/hello#%20hello\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://curl.se/hello", "--set", "fragment= hello"],
+}
+URL: {
+    "expected": {"stdout": "https://curl.se/hello#%20hello\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://curl.se/hello", "--set", "fragment:=%20hello"],
+}
+URL: {
+    "expected": {"stdout": "https://example.com/\n", "stderr": "", "returncode": 0},
+    "arguments": ["HTTPS://example.com"],
+}
+URL: {
+    "expected": {"stdout": "https://EXAMPLE.com/\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://EXAMPLE.com"],
+}
+URL: {
+    "expected": {"stdout": "https://example.com/FOO/BAR\n", "stderr": "", "returncode": 0},
+    "arguments": ["https://example.com/FOO/BAR"],
+}
+URL: {
+    "expected": {
+        "stdout": "https://curl.se/we/are.html?user=many#more\n",
+        "stderr": "",
+        "returncode": 0,
+    },
+    "arguments": ["https://curl.se/we/are.html?*=moo&user=many#more", "--qtrim", "\\*"],
+}
