@@ -52,9 +52,7 @@ def test_eq() -> None:
         query={"one": "1", "two": "2"},
         fragment="fragment",
         query_options=QueryOptions(
-            query_separator="*",
             query_joiner="^",
-            key_value_separator="=",
             safe_characters="!",
             space_encoding=SpaceEncoding.PLUS,
         ),
@@ -68,9 +66,7 @@ def test_eq() -> None:
         query={"one": "1", "two": "2"},
         fragment="fragment",
         query_options=QueryOptions(
-            query_separator="*",
             query_joiner="^",
-            key_value_separator="=",
             safe_characters="!",
             space_encoding=SpaceEncoding.PLUS,
         ),
@@ -98,9 +94,7 @@ def test_hash() -> None:
             query={"one": "1", "two": "2"},
             fragment="fragment",
             query_options=QueryOptions(
-                query_separator="*",
                 query_joiner="^",
-                key_value_separator="=",
                 safe_characters="!",
                 space_encoding=SpaceEncoding.PLUS,
             ),
@@ -116,9 +110,7 @@ def test_hash() -> None:
             query={"one": "1", "two": "2"},
             fragment="fragment",
             query_options=QueryOptions(
-                query_separator="*",
                 query_joiner="^",
-                key_value_separator="=",
                 safe_characters="!",
                 space_encoding=SpaceEncoding.PLUS,
             ),

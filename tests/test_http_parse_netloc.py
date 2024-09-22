@@ -25,3 +25,15 @@ from urlkit.http_url import parse_http_or_https_url
 def test_netloc(url: str, expected: str) -> None:
     """Test that we can construct URLs correctly."""
     assert parse_http_or_https_url(url).netloc == expected
+
+
+@pytest.mark.parametrize(
+    "url,expected",
+    [
+        ("http:a/path/here", None),
+        ("http:/a/path/here", None),
+    ],
+)
+def test_relative(url: str, expected: str) -> None:
+    """Test that we can construct URLs correctly."""
+    assert parse_http_or_https_url(url).netloc == expected

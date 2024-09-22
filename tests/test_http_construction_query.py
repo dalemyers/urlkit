@@ -171,11 +171,11 @@ def test_query_parameters_base_encoding(expected: str, url_components: dict) -> 
     "expected,url_components",
     [
         (
-            "http://example.com/|foo=bar",
+            "http://example.com/?foo=bar",
             {
                 "host": "example.com",
                 "query": {"foo": "bar"},
-                "query_options": QueryOptions(query_separator="|"),
+                "query_options": QueryOptions(),
             },
         ),
         (
@@ -184,14 +184,6 @@ def test_query_parameters_base_encoding(expected: str, url_components: dict) -> 
                 "host": "example.com",
                 "query": {"foo": "bar", "baz": "qux"},
                 "query_options": QueryOptions(query_joiner="<>"),
-            },
-        ),
-        (
-            "http://example.com/?foo:bar&baz:qux",
-            {
-                "host": "example.com",
-                "query": {"foo": "bar", "baz": "qux"},
-                "query_options": QueryOptions(key_value_separator=":"),
             },
         ),
         (
@@ -288,7 +280,7 @@ def test_query_property() -> None:
 
 def test_query_options_property() -> None:
     """Test that reading back the property gives the same value."""
-    options = QueryOptions(query_separator="|")
+    options = QueryOptions(query_joiner="|")
     a = HttpUrl(host="example.com", query_options=options)
     assert a.query_options == options
 
@@ -313,16 +305,12 @@ def test_query_options_property() -> None:
         ),
         (
             QueryOptions(
-                query_separator="|",
                 query_joiner="|",
-                key_value_separator=":",
                 safe_characters="/",
                 space_encoding=SpaceEncoding.PLUS,
             ),
             QueryOptions(
-                query_separator="|",
                 query_joiner="|",
-                key_value_separator=":",
                 safe_characters="/",
                 space_encoding=SpaceEncoding.PLUS,
             ),
@@ -330,16 +318,12 @@ def test_query_options_property() -> None:
         ),
         (
             QueryOptions(
-                query_separator="|",
                 query_joiner="|",
-                key_value_separator=":",
                 safe_characters="/",
                 space_encoding=SpaceEncoding.PLUS,
             ),
             QueryOptions(
-                query_separator="|",
                 query_joiner="|",
-                key_value_separator=":",
                 safe_characters="/",
                 space_encoding=SpaceEncoding.PERCENT,
             ),

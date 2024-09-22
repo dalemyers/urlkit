@@ -7,7 +7,7 @@ Previously, the way to work with URLs was with `urllib`. This was always difficu
 ```python
 from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
 
-url_string = "http://example.com?foo=bar&baz=qux"
+url_string = "http://example.com/?foo=bar&baz=qux"
 # Parse the URL into components
 parsed_url = urlparse(url_string)
 
@@ -36,7 +36,7 @@ Now with `urlkit`:
 ```python
 from urlkit.http_url import HttpUrl
 
-url_string = "http://example.com?foo=bar&baz=qux"
+url_string = "http://example.com/?foo=bar&baz=qux"
 # Parse the URL
 url = HttpUrl.parse(url_string)
 
@@ -110,4 +110,4 @@ url.path.extend(["baz", "one", "two"]) # http://example.com/foo/bar/baz/one/two
 
 #### Multiple Query Parameters With Same Key
 
-URLs are old. They have a _lot_ of cruft, and it can make them difficult to work with. For example, many implementations, such as `urllib`, allow a query parameter to appear multiple times. So if you were to use the url `http://example.com?param=1&param=2` and then tried to get the result for `param` you would get a list back: `["1", "2"]`. This can be nice. The downside though is that it means that every time you query for a parameter, even though they almost always appear just once, you get a list. i.e. `https://example.com?param=1` returns `["1"]`.
+URLs are old. They have a _lot_ of cruft, and it can make them difficult to work with. For example, many implementations, such as `urllib`, allow a query parameter to appear multiple times. So if you were to use the url `http://example.com/?param=1&param=2` and then tried to get the result for `param` you would get a list back: `["1", "2"]`. This can be nice. The downside though is that it means that every time you query for a parameter, even though they almost always appear just once, you get a list. i.e. `https://example.com/?param=1` returns `["1"]`.

@@ -14,6 +14,33 @@ from urlkit.http_url import HttpUrl, HttpsUrl, parse_http_or_https_url, QueryOpt
 # pylint: enable=wrong-import-position
 
 
+# Daniel Stenberg has an interesting post: https://daniel.haxx.se/blog/2022/09/08/http-http-http-http-http-http-http/
+# It states that this is a valid URL: http://http://http://@http://http://?http://#http://
+# And that this is how it parses:
+# scheme: http
+# username: http
+# password: //http://
+# host: http
+# port: N/A
+# path: //http://
+# query: http://
+# fragment: http://
+
+# Now, the original version of my parser also agreed with this. However, after
+# looking at the RFC, I realized that this parse isn't correct. It ignores rule
+# 2.4.3 in RFC 1808 which states:
+# If the parse string begins with a double-slash "//", then the
+# substring of characters after the double-slash and up to, but not
+# including, the next slash "/" character is the network location/login
+# (<net_loc>) of the URL.  If no trailing slash "/" is present, the
+# entire remaining parse string is assigned to <net_loc>.  The double-
+# slash and <net_loc> are removed from the parse string before
+# continuing.
+
+# I do like Daniel's parse more, but I've elected to stick to the RFC, so it
+# wouldn't parse as CURL/TRURL would.
+
+
 @pytest.mark.parametrize(
     "url,url_components",
     [
@@ -21,10 +48,8 @@ from urlkit.http_url import HttpUrl, HttpsUrl, parse_http_or_https_url, QueryOpt
             "http://http://http://@http://http://?http://#http://",
             {
                 "scheme": "http",
-                "username": "http",
-                "password": "//http://",
                 "host": "http",
-                "path": "//http://",
+                "path": "//http://@http://http://",
                 "query": "http://",
                 "fragment": "http://",
             },
@@ -45,18 +70,29 @@ from urlkit.http_url import HttpUrl, HttpsUrl, parse_http_or_https_url, QueryOpt
             {"scheme": "http", "host": "example.com", "path": "/foo"},
         ),
         (
-            "https://example.com?foo=bar",
+            "https://example.com/?",
             {
                 "scheme": "https",
                 "host": "example.com",
+                "path": "/",
+                "query": None,
+            },
+        ),
+        (
+            "https://example.com/?foo=bar",
+            {
+                "scheme": "https",
+                "host": "example.com",
+                "path": "/",
                 "query": {"foo": "bar"},
             },
         ),
         (
-            "https://example.com?foo=bar#fragment",
+            "https://example.com/?foo=bar#fragment",
             {
                 "scheme": "https",
                 "host": "example.com",
+                "path": "/",
                 "query": {"foo": "bar"},
                 "fragment": "fragment",
             },
@@ -169,13 +205,13 @@ from urlkit.http_url import HttpUrl, HttpsUrl, parse_http_or_https_url, QueryOpt
             },
         ),
         (
-            "https://example.com/|foo=bar",
+            "https://example.com/?foo=bar",
             {
                 "scheme": "https",
                 "host": "example.com",
                 "path": "/",
                 "query": {"foo": "bar"},
-                "query_options": QueryOptions(query_separator="|"),
+                "query_options": QueryOptions(),
             },
         ),
     ],

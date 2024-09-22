@@ -13,9 +13,10 @@ class BaseHttpOrHttpsUrl(URL):
     _scheme: str
     _username: str | None
     _password: str | None
-    _host: str
+    _host: str | None
     _port: int | None
     _path: HttpPath | None
+    _parameters: str | None
     _query: dict[str, Any] | None
     _fragment: str | None
     _query_options: QueryOptions
@@ -27,9 +28,10 @@ class BaseHttpOrHttpsUrl(URL):
         scheme: str,
         username: str | None = None,
         password: str | None = None,
-        host: str,
+        host: str | None,  # This is usually set, so we won't give a default.
         port: int | str | None = None,
         path: str | HttpPath | None = None,
+        parameters: str | None = None,
         query: dict[str, Any] | str | None = None,
         fragment: str | None = None,
         query_options: QueryOptions = QueryOptions(),
@@ -42,6 +44,7 @@ class BaseHttpOrHttpsUrl(URL):
         self.host = host
         self.port = port
         self.path = path
+        self.parameters = parameters
         # Needs to be set before query as we use it in the query setter
         self.query_options = query_options
         self.query = query  # type: ignore
@@ -52,20 +55,10 @@ class BaseHttpOrHttpsUrl(URL):
     def __str__(self) -> str:
         """Construct the URL string representation."""
 
-        output = f"{self._scheme}://"
+        output = f"{self._scheme}:"
 
-        if self.username:
-            output += self.username
-
-            if self.password:
-                output += f":{self.password}"
-
-            output += "@"
-
-        output += self._host
-
-        if self._port:
-            output += f":{self._port}"
+        if self.netloc:
+            output += "//" + self.netloc
 
         if self._path:
             output += str(self._path)
@@ -75,9 +68,7 @@ class BaseHttpOrHttpsUrl(URL):
             output += "/"
 
         if self._query:
-            output += self._query_options.query_separator + encode_query(
-                self._query, self._query_options
-            )
+            output += "?" + encode_query(self._query, self._query_options)
 
         if self._fragment:
             output += "#" + self._fragment
@@ -157,15 +148,15 @@ class BaseHttpOrHttpsUrl(URL):
         self._password = value
 
     @property
-    def host(self) -> str:
+    def host(self) -> str | None:
         """Get the URL host."""
         return self._host
 
     @host.setter
-    def host(self, value: str) -> None:
+    def host(self, value: str | None) -> None:
         """Set the URL host."""
-        if not isinstance(value, str):
-            raise TypeError(f"Host: Expected str, got {type(value)}")
+        if value and not isinstance(value, str):
+            raise TypeError(f"Host: Expected str or None, got {type(value)}")
 
         self._host = value
 
@@ -192,7 +183,7 @@ class BaseHttpOrHttpsUrl(URL):
             raise ValueError(f"Port: Expected valid integer value, got {value}") from ex
 
     @property
-    def netloc(self) -> str:
+    def netloc(self) -> str | None:
         """Get the netloc as defined by RFC1808."""
         output = ""
 
@@ -204,10 +195,14 @@ class BaseHttpOrHttpsUrl(URL):
 
             output += "@"
 
-        output += self.host
+        if self.host:
+            output += self.host
 
         if self.port:
             output += f":{self.port}"
+
+        if len(output) == 0:
+            return None
 
         return output
 
@@ -224,7 +219,13 @@ class BaseHttpOrHttpsUrl(URL):
             return
 
         if isinstance(value, str):
-            self._path = HttpPath(value.split("/"))
+            from_root = value.startswith("/")
+            if from_root:
+                value = value[1:]
+            if value:
+                self._path = HttpPath(value.split("/"), from_root)
+            else:
+                self._path = HttpPath([], from_root)
             return
 
         if isinstance(value, HttpPath):
@@ -232,6 +233,16 @@ class BaseHttpOrHttpsUrl(URL):
             return
 
         raise TypeError(f"Path: Expected str, HttpPath, or None, got {type(value)}")
+
+    @property
+    def parameters(self) -> str | None:
+        """Get the URL parameters."""
+        return self._parameters
+
+    @parameters.setter
+    def parameters(self, value: str | None) -> None:
+        """Set the URL parameters."""
+        self._parameters = value
 
     @property
     def query(self) -> dict[str, Any] | None:
@@ -249,13 +260,15 @@ class BaseHttpOrHttpsUrl(URL):
             return
 
         # If it's a string, we need to parse it into a dict.
+        # This doesn't appear in an RFC as far as I can tell. There's hints of
+        # it in the HTML spec for form encoded data, but nothing concrete.
 
         components = value.split(self.query_options.query_joiner)
 
         query_dict: dict[str, Any] = {}
 
         for component in components:
-            key_value = component.split(self.query_options.key_value_separator, maxsplit=1)
+            key_value = component.split("=", maxsplit=1)
 
             key = decode_query_value(key_value[0], self.query_options)
 
@@ -315,9 +328,10 @@ class HttpUrl(BaseHttpOrHttpsUrl):
         *,
         username: str | None = None,
         password: str | None = None,
-        host: str,
+        host: str | None,  # This is usually set, so we won't give a default.
         port: int | str | None = None,
         path: str | None = None,
+        parameters: str | None = None,
         query: dict[str, Any] | str | None = None,
         fragment: str | None = None,
         query_options: QueryOptions = QueryOptions(),
@@ -329,6 +343,7 @@ class HttpUrl(BaseHttpOrHttpsUrl):
             host=host,
             port=port,
             path=path,
+            parameters=parameters,
             query=query,
             fragment=fragment,
             query_options=query_options,
@@ -351,6 +366,7 @@ class HttpUrl(BaseHttpOrHttpsUrl):
             host=parsed.host,
             port=parsed.port,
             path=parsed.path,  # type: ignore
+            parameters=parsed.parameters,
             query=parsed.query,
             fragment=parsed.fragment,
             query_options=parsed.query_options,
@@ -366,9 +382,10 @@ class HttpsUrl(BaseHttpOrHttpsUrl):
         *,
         username: str | None = None,
         password: str | None = None,
-        host: str,
+        host: str | None,  # This is usually set, so we won't give a default.
         port: int | str | None = None,
         path: str | None = None,
+        parameters: str | None = None,
         query: dict[str, Any] | str | None = None,
         fragment: str | None = None,
         query_options: QueryOptions = QueryOptions(),
@@ -380,6 +397,7 @@ class HttpsUrl(BaseHttpOrHttpsUrl):
             host=host,
             port=port,
             path=path,
+            parameters=parameters,
             query=query,
             fragment=fragment,
             query_options=query_options,
@@ -402,10 +420,66 @@ class HttpsUrl(BaseHttpOrHttpsUrl):
             host=parsed.host,
             port=parsed.port,
             path=parsed.path,  # type: ignore
+            parameters=parsed.parameters,
             query=parsed.query,
             fragment=parsed.fragment,
             query_options=parsed.query_options,
         )
+
+
+def _parse_net_loc(net_loc: str) -> tuple[str | None, str | None, str | None, int | None]:
+    """Parse a netloc into its components."""
+
+    # Netloc is auth info, host, and port. RFC 1808 doesn't actually decompose
+    # this into its components, but it's incredible useful, so we'll do it here.
+
+    # According to the BNF grammar, there are can be no `@` characters in the
+    # netloc. However, RFC 3986 section 3.2.1 specifies that a `@` separates the
+    # user info from the host. So we'll use that.
+
+    userinfo_index = net_loc.find("@")
+
+    if userinfo_index != -1:
+        userinfo = net_loc[:userinfo_index]
+        host_and_port = net_loc[userinfo_index + 1 :]
+    else:
+        userinfo = None
+        host_and_port = net_loc
+
+    # If we have a userinfo, we still need to split into username and password (if
+    # there is a password). RFC 3986 section 3.2.1 specifies that the _first_
+    # `:` seen separates the username from the password
+    if userinfo:
+        password_index = userinfo.find(":")
+
+        if password_index != -1:
+            password = userinfo[password_index + 1 :]
+            username = userinfo[:password_index]
+        else:
+            username = userinfo
+            password = None
+    else:
+        username = None
+        password = None
+
+    # Now we need to get the port from the host_and_port if it is defined. RFC
+    # 3986 section 3.2 gives a grammar that shows that the port comes after the
+    # _last_ colon if it is specified. We can't use any other as IPv6 addresses
+    # can contain colons.
+
+    if ":" in host_and_port:
+        port_index = host_and_port.rfind(":")
+        port_string = host_and_port[port_index + 1 :]
+        if len(port_string) == 0:
+            port = None
+        else:
+            port = int(port_string)
+        host = host_and_port[:port_index]
+    else:
+        host = host_and_port
+        port = None
+
+    return username, password, host, port
 
 
 # pylint: disable=too-many-branches
@@ -414,24 +488,19 @@ def parse_http_or_https_url(
 ) -> BaseHttpOrHttpsUrl:
     """Parse a HTTP or HTTPS URL."""
 
-    # This comes from https://datatracker.ietf.org/doc/html/rfc1738
-    # There are some liberties taken. For example, according to their BNF
-    # grammar, you can't have a username and password for a HTTP(s) url, only
-    # for FTP, etc. And HTTPS doesn't event exist in the spec yet.
+    # This comes from https://datatracker.ietf.org/doc/html/rfc1808
+    # The rules in the grammar must be applied in order, so we'll do that here.
 
-    # TODO: This can probably be made much more efficient
+    # Rule #1: URL         = ( absoluteURL | relativeURL ) [ "#" fragment ]
 
-    # Anything at the start we know is the scheme.
-    if value.startswith("http://"):
-        scheme = "http"
-        value = value[7:]
-    elif value.startswith("https://"):
-        scheme = "https"
-        value = value[8:]
-    else:
-        raise ValueError("URL: Expected 'http://' or 'https://' prefix")
+    # According to 2.4.1:
+    # ```
+    # If the parse string contains a crosshatch "#" character, then the
+    # substring after the first (left-most) crosshatch "#" and up to the
+    # end of the parse string is the <fragment> identifier.
+    # ```
+    # So we can just split on the first # and take the second part as the fragment
 
-    # Anything at the end after a # we know is the fragment.
     fragment_index = value.find("#")
 
     if fragment_index != -1:
@@ -440,83 +509,119 @@ def parse_http_or_https_url(
     else:
         fragment = None
 
-    # We assume there are no characters in the query that also match the query
-    # separator (usually ?).
+    # We now have an absoluteURL or a relativeURL left. A relativeURL has no
+    # scheme, and since we only care about HTTP and HTTPS we can ignore that and
+    # assume there is a scheme and therefore this is an absoluteURL.
 
-    query_index = value.rfind(query_options.query_separator)
+    # Rule #2: absoluteURL = generic-RL | ( scheme ":" *( uchar | reserved ) )
+
+    # Rule #3: generic-RL  = scheme ":" relativeURL
+
+    # If we combine these two, we get: absoluteURL = (scheme ":" relativeURL) | ( scheme ":" *( uchar | reserved ) )
+    # Either way, we have a scheme, so let's get it out.
+
+    # 2.4.2:
+    # If the parse string contains a colon ":" after the first character
+    # and before any characters not allowed as part of a scheme name (i.e.,
+    # any not an alphanumeric, plus "+", period ".", or hyphen "-"), the
+    # <scheme> of the URL is the substring of characters up to but not
+    # including the first colon.  These characters and the colon are then
+    # removed from the parse string before continuing.
+
+    # We are specifically looking for `http:` or `https:` as the scheme, so can
+    # just check for that.
+
+    if value.startswith("http:"):
+        scheme = "http"
+        value = value[5:]
+    elif value.startswith("https:"):
+        scheme = "https"
+        value = value[6:]
+    else:
+        raise ValueError("URL: Expected 'http://' or 'https://' prefix")
+
+    # We are now left with a relativeURL.
+
+    # Rule 4: relativeURL = net_path | abs_path | rel_path
+    # Rule 5: net_path    = "//" net_loc [ abs_path ]
+    # Rule 6: abs_path    = "/"  rel_path
+    # Rule 7: rel_path    = [ path ] [ ";" params ] [ "?" query ]
+
+    # 2.4.3:
+    # If the parse string begins with a double-slash "//", then the
+    # substring of characters after the double-slash and up to, but not
+    # including, the next slash "/" character is the network location/login
+    # (<net_loc>) of the URL.  If no trailing slash "/" is present, the
+    # entire remaining parse string is assigned to <net_loc>.  The double-
+    # slash and <net_loc> are removed from the parse string before
+
+    if value.startswith("//"):
+        value = value[2:]
+        next_slash_index = value.find("/")
+
+        # If we don't find it, we take to the end of the string.
+        if next_slash_index == -1:
+            next_slash_index = len(value)
+
+        net_loc = value[:next_slash_index]
+
+        # RFC 1808 doesn't actually decompose the netloc into its components,
+        # but RFC 3986 allows us to do so.
+        username, password, host, port = _parse_net_loc(net_loc)
+        value = value[next_slash_index:]
+    else:
+        username = None
+        password = None
+        host = None
+        port = None
+
+    # 2.4.4 states:
+    # If the parse string contains a question mark "?" character, then the
+    # substring after the first (left-most) question mark "?" and up to the
+    # end of the parse string is the <query> information.  If the question
+    # mark is the last character, or no question mark is present, then the
+    # query information is empty.  The matched substring, including the
+    # question mark character, is removed from the parse string before
+    # continuing.
+
+    # Therefore, we can find the first `?` and split on that.
+
+    query_index = value.find("?")
 
     if query_index != -1:
-        query = value[query_index + 1 :]
+        query: str | None = value[query_index + 1 :]
+        if query is not None and len(query) == 0:
+            query = None
         value = value[:query_index]
     else:
         query = None
 
-    # Now we assume there are no `@` characters in the host, port or login
-    # details. This isn't necessarily true, but it's a good assumption for now.
+    # 2.4.5 states:
+    # If the parse string contains a semicolon ";" character, then the
+    # substring after the first (left-most) semicolon ";" and up to the end
+    # of the parse string is the parameters (<params>).  If the semicolon
+    # is the last character, or no semicolon is present, then <params> is
+    # empty.  The matched substring, including the semicolon character, is
+    # removed from the parse string before continuing.
 
-    login_index = value.find("@")
+    # So we can do the same as we did with the query before, and split on the
+    # first `;`.
 
-    if login_index != -1:
-        login = value[:login_index]
-        value = value[login_index + 1 :]
+    parameters_index = value.find(";")
+
+    if parameters_index != -1:
+        parameters: str | None = value[parameters_index + 1 :]
+        if parameters and len(parameters) == 0:
+            parameters = None
+        value = value[:parameters_index]
     else:
-        login = None
+        parameters = None
 
-    host = value
-
-    # If we have a login, we still need to split into username and password (if
-    # there is a password).
-    if login:
-        password_index = login.find(":")
-
-        if password_index != -1:
-            password = login[password_index + 1 :]
-            username = login[:password_index]
-        else:
-            username = login
-            password = None
-    else:
-        username = None
-        password = None
-
-    # Now it gets a little trickier. There may be a `:` for the port, but this
-    # also often appears in the path. We need to check if it's a port or not.
-
-    # We assume that if it appears before the first `/` then it's a port,
-    # otherwise it's part of the path.
-
-    path_index = value.find("/")
-    port_index = value.find(":")
-
-    def get_port(port_string: str) -> int | None:
-        try:
-            return int(port_string)
-        except ValueError:
-            return None
-
-    if port_index == -1 and path_index == -1:
-        port = None
+    # 2.4.6 states that everything left (if anything) is the path.
+    if value == "":
         path = None
-        host = value
-    elif port_index == -1 and path_index != -1:
-        port = None
-        path = value[path_index:]
-        host = value[:path_index]
-    elif port_index != -1 and path_index == -1:
-        port_string = value[port_index + 1 :]
-        port = get_port(port_string)
-        path = None
-        host = value[:port_index]
     else:
-        if port_index < path_index:
-            port_string = value[port_index + 1 : path_index]
-            port = get_port(port_string)
-            path = value[path_index:]
-            host = value[:port_index]
-        else:
-            port = None
-            path = value[path_index:]
-            host = value[:path_index]
+        path = value
 
     if scheme == "http":
         return HttpUrl(

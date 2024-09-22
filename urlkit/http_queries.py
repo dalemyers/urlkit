@@ -15,23 +15,17 @@ class SpaceEncoding(enum.Enum):
 class QueryOptions:
     """A class representing the various query parameter options."""
 
-    query_separator: str
     query_joiner: str
-    key_value_separator: str
     safe_characters: str
     space_encoding: SpaceEncoding
 
     def __init__(
         self,
-        query_separator: str = "?",
         query_joiner: str = "&",
-        key_value_separator: str = "=",
         safe_characters: str = "",
         space_encoding: SpaceEncoding = SpaceEncoding.PERCENT,
     ) -> None:
-        self.query_separator = query_separator
         self.query_joiner = query_joiner
-        self.key_value_separator = key_value_separator
         self.safe_characters = safe_characters
         self.space_encoding = space_encoding
 
@@ -42,9 +36,7 @@ class QueryOptions:
             return False
 
         return (
-            self.query_separator == other.query_separator
-            and self.query_joiner == other.query_joiner
-            and self.key_value_separator == other.key_value_separator
+            self.query_joiner == other.query_joiner
             and self.safe_characters == other.safe_characters
             and self.space_encoding == other.space_encoding
         )
@@ -54,9 +46,7 @@ class QueryOptions:
 
         return hash(
             (
-                self.query_separator,
                 self.query_joiner,
-                self.key_value_separator,
                 self.safe_characters,
                 self.space_encoding,
             )
@@ -95,7 +85,7 @@ def encode_query(query: dict[str, Any], options: QueryOptions) -> str:
         else:
             raise ValueError(f"Query: Expected str or int, got {type(value)}")
 
-        encoded_values.append(f"{encoded_key}{options.key_value_separator}{encoded_value}")
+        encoded_values.append(f"{encoded_key}={encoded_value}")
 
     return options.query_joiner.join(encoded_values)
 
