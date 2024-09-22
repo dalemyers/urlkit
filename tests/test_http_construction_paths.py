@@ -9,7 +9,7 @@ from utilities import assert_http_construction_expected_vs_components
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-from urlkit.http_url import HttpUrl
+from urlkit.http_url import HttpUrl, HttpPath
 
 # pylint: enable=wrong-import-position
 
@@ -72,4 +72,49 @@ def test_path_invalid_value() -> None:
 def test_path_property() -> None:
     """Test that reading back the property gives the same value."""
     a = HttpUrl(host="example.com", path="/section1")
-    assert a.path == "/section1"
+    assert str(a.path) == "/section1"
+    assert a.path == HttpPath(components=["", "section1"])
+
+    a.path = "/Hello/World"
+    assert str(a.path) == "/Hello/World"
+    assert a.path == HttpPath(components=["", "Hello", "World"])
+
+    a.path = HttpPath(["", "World", "Hello"])
+    assert str(a.path) == "/World/Hello"
+    assert a.path == HttpPath(components=["", "World", "Hello"])
+
+
+def test_http_path_equality() -> None:
+    """Test that we can compare paths."""
+    assert HttpPath(["a", "b", "c"]) == HttpPath(["a", "b", "c"])
+    assert HttpPath(["a", "b", "c"]) != HttpPath(["a", "b", "d"])
+    assert HttpPath(["a", "b", "c"]) != HttpPath(["a", "b"])
+    assert HttpPath(["a", "b", "c"]) != HttpPath(["a", "b", "c", "d"])
+    assert HttpPath(["a", "b", "c"]) != "a/b/c"
+    assert str(HttpPath(["a", "b", "c"])) == "a/b/c"
+
+
+def test_http_path_append_pop() -> None:
+    """Test that we can append to paths."""
+    path = HttpPath()
+    path.append_component("a")
+    assert path == HttpPath(["a"])
+    path.append_component("b")
+    assert path == HttpPath(["a", "b"])
+    path.append_component("c")
+    assert path == HttpPath(["a", "b", "c"])
+    path.append_component("d/e")
+    assert path == HttpPath(["a", "b", "c", "d", "e"])
+    path.pop_last()
+    assert path == HttpPath(["a", "b", "c", "d"])
+    path.pop_last()
+    assert path == HttpPath(["a", "b", "c"])
+    path.pop_last()
+    assert path == HttpPath(["a", "b"])
+    path.pop_last()
+    assert path == HttpPath(["a"])
+    path.pop_last()
+    assert path == HttpPath()
+
+    with pytest.raises(IndexError):
+        path.pop_last()

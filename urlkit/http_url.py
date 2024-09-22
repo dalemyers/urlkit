@@ -4,6 +4,7 @@ from typing import Any, cast, Union
 
 from .url import URL
 from .http_queries import encode_query, QueryOptions, decode_query_value
+from .http_path import HttpPath
 
 
 class BaseHttpOrHttpsUrl(URL):
@@ -14,7 +15,7 @@ class BaseHttpOrHttpsUrl(URL):
     _password: str | None
     _host: str
     _port: int | None
-    _path: str | None
+    _path: HttpPath | None
     _query: dict[str, Any] | None
     _fragment: str | None
     _query_options: QueryOptions
@@ -28,7 +29,7 @@ class BaseHttpOrHttpsUrl(URL):
         password: str | None = None,
         host: str,
         port: int | str | None = None,
-        path: str | None = None,
+        path: str | HttpPath | None = None,
         query: dict[str, Any] | str | None = None,
         fragment: str | None = None,
         query_options: QueryOptions = QueryOptions(),
@@ -67,7 +68,7 @@ class BaseHttpOrHttpsUrl(URL):
             output += f":{self._port}"
 
         if self._path:
-            output += self._path
+            output += str(self._path)
 
         # We usually see the root path if a query is there.
         if not self._path and self._query:
@@ -191,17 +192,25 @@ class BaseHttpOrHttpsUrl(URL):
             raise ValueError(f"Port: Expected valid integer value, got {value}") from ex
 
     @property
-    def path(self) -> str | None:
         """Get the URL path."""
         return self._path
 
     @path.setter
-    def path(self, value: str | None) -> None:
+    def path(self, value: str | HttpPath | None) -> None:
         """Set the URL path."""
-        if value is not None and not isinstance(value, str):
-            raise TypeError(f"Path: Expected str or None, got {type(value)}")
+        if value is None:
+            self._path = None
+            return
 
-        self._path = value
+        if isinstance(value, str):
+            self._path = HttpPath(value.split("/"))
+            return
+
+        if isinstance(value, HttpPath):
+            self._path = value
+            return
+
+        raise TypeError(f"Path: Expected str, HttpPath, or None, got {type(value)}")
 
     @property
     def query(self) -> dict[str, Any] | None:
@@ -313,7 +322,18 @@ class HttpUrl(BaseHttpOrHttpsUrl):
         if not string.startswith("http://"):
             raise ValueError("URL: Expected 'http://' prefix")
 
-        return cast(HttpUrl, BaseHttpOrHttpsUrl.parse(string, query_options))
+        parsed = BaseHttpOrHttpsUrl.parse(string, query_options)
+
+        return HttpUrl(
+            username=parsed.username,
+            password=parsed.password,
+            host=parsed.host,
+            port=parsed.port,
+            path=parsed.path,  # type: ignore
+            query=parsed.query,
+            fragment=parsed.fragment,
+            query_options=parsed.query_options,
+        )
 
 
 class HttpsUrl(BaseHttpOrHttpsUrl):
@@ -353,7 +373,18 @@ class HttpsUrl(BaseHttpOrHttpsUrl):
         if not string.startswith("https://"):
             raise ValueError("URL: Expected 'https://' prefix")
 
-        return cast(HttpsUrl, BaseHttpOrHttpsUrl.parse(string, query_options))
+        parsed = BaseHttpOrHttpsUrl.parse(string, query_options)
+
+        return HttpsUrl(
+            username=parsed.username,
+            password=parsed.password,
+            host=parsed.host,
+            port=parsed.port,
+            path=parsed.path,  # type: ignore
+            query=parsed.query,
+            fragment=parsed.fragment,
+            query_options=parsed.query_options,
+        )
 
 
 # pylint: disable=too-many-branches
@@ -466,8 +497,19 @@ def parse_http_or_https_url(
             path = value[path_index:]
             host = value[:path_index]
 
-    return BaseHttpOrHttpsUrl(
-        scheme=scheme,
+    if scheme == "http":
+        return HttpUrl(
+            username=username,
+            password=password,
+            host=host,
+            port=port,
+            path=path,
+            query=query,
+            fragment=fragment,
+            query_options=query_options,
+        )
+
+    return HttpsUrl(
         username=username,
         password=password,
         host=host,
