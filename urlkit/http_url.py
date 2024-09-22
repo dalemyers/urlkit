@@ -192,6 +192,27 @@ class BaseHttpOrHttpsUrl(URL):
             raise ValueError(f"Port: Expected valid integer value, got {value}") from ex
 
     @property
+    def netloc(self) -> str:
+        """Get the netloc as defined by RFC1808."""
+        output = ""
+
+        if self.username:
+            output += self.username
+
+            if self.password:
+                output += f":{self.password}"
+
+            output += "@"
+
+        output += self.host
+
+        if self.port:
+            output += f":{self.port}"
+
+        return output
+
+    @property
+    def path(self) -> HttpPath | str | None:
         """Get the URL path."""
         return self._path
 
