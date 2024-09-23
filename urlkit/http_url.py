@@ -57,8 +57,8 @@ class BaseHttpOrHttpsUrl(URL):
 
         output = f"{self._scheme}:"
 
-        if self.netloc:
-            output += "//" + self.netloc
+        if netloc := self.netloc:
+            output += "//" + netloc
 
         if self._path:
             output += str(self._path)
