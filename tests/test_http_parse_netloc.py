@@ -7,7 +7,7 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-from urlkit.http_url import parse_http_or_https_url
+from urlkit.http.http_url import parse_http_or_https_url
 
 # pylint: enable=wrong-import-position
 

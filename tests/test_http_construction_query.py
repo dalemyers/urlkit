@@ -9,8 +9,8 @@ from utilities import assert_http_construction_expected_vs_components
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-from urlkit.http_queries import QueryOptions, SpaceEncoding
-from urlkit.http_url import HttpUrl
+from urlkit.http.http_queries import QueryOptions, SpaceEncoding, QuerySet, QueryValue
+from urlkit.http.http_url import HttpUrl
 
 # pylint: enable=wrong-import-position
 
@@ -214,7 +214,7 @@ def test_query_parameters_base_encoding(expected: str, url_components: dict) -> 
             "http://example.com/?foo=bar+baz",
             {
                 "host": "example.com",
-                "query": "foo=bar baz",
+                "query": "foo=bar+baz",
                 "query_options": QueryOptions(space_encoding=SpaceEncoding.PLUS),
             },
         ),
@@ -275,7 +275,10 @@ def test_query_parameters_invalid_type() -> None:
 def test_query_property() -> None:
     """Test that reading back the property gives the same value."""
     a = HttpUrl(host="example.com", query={"one": "1", "two": "2"})
-    assert a.query == {"one": "1", "two": "2"}
+    new_query = QuerySet(QueryOptions())
+    new_query["one"] = "1"
+    new_query["two"] = "2"
+    assert a.query == new_query
 
 
 def test_query_options_property() -> None:
@@ -334,3 +337,103 @@ def test_query_options_property() -> None:
 def test_query_options_equality(a: QueryOptions, b: QueryOptions, expected: bool) -> None:
     """Test that reading back the property gives the same value."""
     assert (a == b) is expected
+
+
+def test_query_options_object() -> None:
+    """Test that setting QuerySet as a query value works."""
+    url = HttpUrl(host="example.com", query={"foo": QueryValue("bar")})
+    url.query["baz"] = QueryValue("qux")
+    assert str(url) == "http://example.com/?foo=bar&baz=qux"
+
+
+def test_query_options_after() -> None:
+    """Test that setting the query options after construction still sets it on the query set."""
+    q1 = QueryOptions(query_joiner="|")
+    q2 = QueryOptions(query_joiner="&")
+    url = HttpUrl(host="example.com", query={"foo": "bar"}, query_options=q1)
+    assert url.query_options == url.query.options
+    assert url.query.options == q1
+    url.query_options = q2
+    assert url.query_options == url.query.options
+    assert url.query.options == q2
+
+
+def test_query_values_equality() -> None:
+    """Test the functionality of the equality operator."""
+
+    assert QueryValue("foo") == QueryValue("foo")
+    assert QueryValue("foo") != QueryValue("bar")
+    assert QueryValue("foo") != QueryValue("foo", encoded=True)
+    assert QueryValue("foo", encoded=True) == QueryValue("foo", encoded=True)
+    assert QueryValue("foo", encoded=True) != QueryValue("foo")
+    assert QueryValue("foo") != QueryValue("bar", encoded=False)
+    assert QueryValue("foo") != "foo"
+
+
+def test_query_values_str_repr() -> None:
+    """Test the functionality of the equality operator."""
+
+    assert str(QueryValue("foo")) == "<QueryValue value=foo encoded=False>"
+    assert str(QueryValue("foo", encoded=True)) == "<QueryValue value=foo encoded=True>"
+    assert str(QueryValue(42)) == "<QueryValue value=42 encoded=False>"
+    assert repr(QueryValue("foo")) == "<QueryValue value=foo encoded=False>"
+    assert repr(QueryValue("foo", encoded=True)) == "<QueryValue value=foo encoded=True>"
+    assert repr(QueryValue(42)) == "<QueryValue value=42 encoded=False>"
+
+
+def test_query_set_get_item() -> None:
+    """Test the getitem functionality of QuerySet."""
+
+    query = QuerySet(QueryOptions(), {"foo": "bar"})
+    query.set_none_value("baz")
+    assert query["foo"] == QueryValue("bar")
+    assert query.get("baz") is None
+    assert query.get("qux") is None
+
+
+def test_query_set_encoded_value() -> None:
+    """Test the set item functionality of QuerySet when the value is encoded."""
+
+    query = QuerySet(QueryOptions(), {"foo": "bar"})
+    query.set_encoded("baz", "Hello%20World")
+    assert str(query) == "foo=bar&baz=Hello%20World"
+
+
+def test_query_set_str_encoding_type_checks() -> None:
+    """Test the type checks for query set when encoding."""
+
+    with pytest.raises(ValueError):
+        query = QuerySet(QueryOptions(), {"foo": object()})
+
+    with pytest.raises(ValueError):
+        query = QuerySet(QueryOptions(), {"foo": ""})
+        query["foo"] = object()
+
+    with pytest.raises(ValueError):
+        query = QuerySet(QueryOptions(), {"foo": ""})
+        query.set_encoded("foo", object())  # type: ignore
+
+    with pytest.raises(ValueError):
+        query = QuerySet(QueryOptions(), {"foo": ""})
+        value = QueryValue("bar")
+        value.value = object()  # type: ignore
+        query["foo"] = value
+        str(query)
+
+
+def test_query_set_equality() -> None:
+    """Test the equality operator for query sets."""
+
+    assert QuerySet(QueryOptions(), {"foo": "bar"}) == QuerySet(QueryOptions(), {"foo": "bar"})
+    assert QuerySet(QueryOptions(), {"foo": "bar"}) != QuerySet(
+        QueryOptions(query_joiner="|"), {"foo": "bar"}
+    )
+    assert QuerySet(QueryOptions(), {"foo": "bar"}) != QuerySet(QueryOptions(), {"foo": "baz"})
+    assert QuerySet(QueryOptions(), {"foo": "bar"}) != QuerySet(QueryOptions(), {"baz": "bar"})
+    assert QuerySet(QueryOptions(), {"foo": "bar"}) != QuerySet(
+        QueryOptions(), {"foo": "bar", "baz": "qux"}
+    )
+    assert QuerySet(QueryOptions(), {"foo": "bar"}) != QuerySet(
+        QueryOptions(), {"foo": "bar"}, assume_unencoded=False
+    )
+    assert QuerySet(QueryOptions(), {"foo": "bar"}) != object()

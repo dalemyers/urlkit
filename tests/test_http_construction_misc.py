@@ -7,8 +7,8 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-from urlkit.http_url import BaseHttpOrHttpsUrl, HttpsUrl, HttpUrl
-from urlkit.http_queries import QueryOptions, SpaceEncoding
+from urlkit.http.http_url import BaseHttpOrHttpsUrl, HttpsUrl, HttpUrl
+from urlkit.http.http_queries import QueryOptions, SpaceEncoding, QuerySet
 
 # pylint: enable=wrong-import-position
 
@@ -42,6 +42,15 @@ def test_eq() -> None:
     assert BaseHttpOrHttpsUrl(scheme="https", host="example.com") == BaseHttpOrHttpsUrl(
         scheme="https", host="example.com"
     )
+    query_options = QueryOptions(
+        query_joiner="^",
+        safe_characters="!",
+        space_encoding=SpaceEncoding.PLUS,
+    )
+    query_set = QuerySet(query_options)
+    query_set["one"] = "1"
+    query_set["two"] = "2"
+
     assert BaseHttpOrHttpsUrl(
         scheme="https",
         host="example.com",
@@ -51,11 +60,7 @@ def test_eq() -> None:
         path="/some/path",
         query={"one": "1", "two": "2"},
         fragment="fragment",
-        query_options=QueryOptions(
-            query_joiner="^",
-            safe_characters="!",
-            space_encoding=SpaceEncoding.PLUS,
-        ),
+        query_options=query_options,
     ) == BaseHttpOrHttpsUrl(
         scheme="https",
         host="example.com",
@@ -63,13 +68,9 @@ def test_eq() -> None:
         password="world",
         port=12345,
         path="/some/path",
-        query={"one": "1", "two": "2"},
+        query=query_set,
         fragment="fragment",
-        query_options=QueryOptions(
-            query_joiner="^",
-            safe_characters="!",
-            space_encoding=SpaceEncoding.PLUS,
-        ),
+        query_options=query_options,
     )
     assert BaseHttpOrHttpsUrl(scheme="https", host="example.com") != BaseHttpOrHttpsUrl(
         scheme="http", host="example.com"

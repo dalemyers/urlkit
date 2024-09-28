@@ -2,8 +2,8 @@
 
 from typing import Any, cast, Union
 
-from .url import URL
-from .http_queries import encode_query, QueryOptions, decode_query_value
+from ..url import URL
+from .http_queries import QueryOptions, decode_query_value, QueryValue, QuerySet
 from .http_path import HttpPath
 
 
@@ -17,7 +17,7 @@ class BaseHttpOrHttpsUrl(URL):
     _port: int | None
     _path: HttpPath | None
     _parameters: str | None
-    _query: dict[str, Any] | None
+    _query: QuerySet
     _fragment: str | None
     _query_options: QueryOptions
 
@@ -32,7 +32,7 @@ class BaseHttpOrHttpsUrl(URL):
         port: int | str | None = None,
         path: str | HttpPath | None = None,
         parameters: str | None = None,
-        query: dict[str, Any] | str | None = None,
+        query: dict[str, Any | QueryValue] | str | QuerySet | None = None,
         fragment: str | None = None,
         query_options: QueryOptions = QueryOptions(),
     ) -> None:
@@ -68,7 +68,7 @@ class BaseHttpOrHttpsUrl(URL):
             output += "/"
 
         if self._query:
-            output += "?" + encode_query(self._query, self._query_options)
+            output += f"?{self._query}"
 
         if self._fragment:
             output += "#" + self._fragment
@@ -245,18 +245,39 @@ class BaseHttpOrHttpsUrl(URL):
         self._parameters = value
 
     @property
-    def query(self) -> dict[str, Any] | None:
+    def query(self) -> QuerySet:
         """Get the URL query."""
         return self._query
 
     @query.setter
-    def query(self, value: dict[str, Any] | str | None) -> None:
+    def query(self, value: dict[str, QueryValue | Any] | str | QuerySet | None) -> None:
         """Set the URL query."""
-        if value is not None and not isinstance(value, dict) and not isinstance(value, str):
+        if (
+            value is not None
+            and not isinstance(value, dict)
+            and not isinstance(value, str)
+            and not isinstance(value, QuerySet)
+        ):
             raise TypeError(f"Query: Expected dict, str, or None, got {type(value)}")
 
-        if value is None or isinstance(value, dict):
+        if value is None:
+            self._query = QuerySet(self._query_options)
+            return
+
+        if isinstance(value, QuerySet):
             self._query = value
+            self._query_options = value.options
+            return
+
+        if isinstance(value, dict):
+            self._query = QuerySet(self._query_options)
+            for q_key, q_value in value.items():
+                if q_value is None:
+                    self._query.set_none_value(q_key)
+                elif isinstance(q_value, QueryValue):
+                    self._query[q_key] = q_value
+                else:
+                    self._query[q_key] = QueryValue(q_value, encoded=False)
             return
 
         # If it's a string, we need to parse it into a dict.
@@ -265,7 +286,7 @@ class BaseHttpOrHttpsUrl(URL):
 
         components = value.split(self.query_options.query_joiner)
 
-        query_dict: dict[str, Any] = {}
+        query_set = QuerySet(self._query_options)
 
         for component in components:
             key_value = component.split("=", maxsplit=1)
@@ -273,11 +294,11 @@ class BaseHttpOrHttpsUrl(URL):
             key = decode_query_value(key_value[0], self.query_options)
 
             if len(key_value) == 1:
-                query_dict[key] = None
+                query_set[key] = None
             else:
-                query_dict[key] = decode_query_value(key_value[1], self.query_options)
+                query_set[key] = QueryValue(key_value[1], encoded=True)
 
-        self._query = query_dict
+        self._query = query_set
 
     @property
     def fragment(self) -> str | None:
@@ -304,6 +325,11 @@ class BaseHttpOrHttpsUrl(URL):
             raise TypeError(f"Query options: Expected QueryOptions got {type(value)}")
 
         self._query_options = value
+
+        # In the case where we have already set a query, we need to give it the
+        # new options.
+        if hasattr(self, "_query"):
+            getattr(self, "_query").options = value
 
     @classmethod
     def parse(
