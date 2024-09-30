@@ -31,7 +31,7 @@ from utilities import assert_http_construction_expected_vs_components
             },
         ),
         (
-            "http://example.com/?search=python#footer",
+            "http://example.com?search=python#footer",
             {
                 "scheme": "http",
                 "host": "example.com",

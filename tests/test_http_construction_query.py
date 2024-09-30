@@ -19,19 +19,19 @@ from urlkit.http import HttpUrl
     "expected,url_components",
     [
         (
-            "http://example.com/?def=ghi",
+            "http://example.com?def=ghi",
             {"scheme": "http", "host": "example.com", "query": "def=ghi"},
         ),
         (
-            "http://example.com/?def=ghi",
+            "http://example.com?def=ghi",
             {"scheme": "http", "host": "example.com", "query": {"def": "ghi"}},
         ),
         (
-            "http://example.com/?def=ghi&jkl=mno",
+            "http://example.com?def=ghi&jkl=mno",
             {"scheme": "http", "host": "example.com", "query": {"def": "ghi", "jkl": "mno"}},
         ),
         (
-            "http://localhost/?a&b&a%26b",
+            "http://localhost?a&b&a%26b",
             {
                 "scheme": "http",
                 "host": "localhost",
@@ -39,20 +39,20 @@ from urlkit.http import HttpUrl
             },
         ),
         (
-            "http://example.com/?name=alice",
+            "http://example.com?name=alice",
             {"scheme": "http", "host": "example.com", "query": {"name": "alice"}},
         ),
         (
-            "http://example.com/?name=alice&age=30",
+            "http://example.com?name=alice&age=30",
             {"scheme": "http", "host": "example.com", "query": {"name": "alice", "age": 30}},
         ),
         (
-            "http://example.com/?search=python",
+            "http://example.com?search=python",
             {"scheme": "http", "host": "example.com", "query": "search=python"},
         ),
         # Very large query strings
         (
-            "http://example.com/?param1=val1&param2=val2&param3=val3&param4=val4&param5=val5&param6=val6&param7=val7&param8=val8",
+            "http://example.com?param1=val1&param2=val2&param3=val3&param4=val4&param5=val5&param6=val6&param7=val7&param8=val8",
             {
                 "scheme": "http",
                 "host": "example.com",
@@ -80,12 +80,12 @@ def test_query_parameters_simple(expected: str, url_components: dict) -> None:
     [
         # Query string with booleans and numbers
         (
-            "http://example.com/?enabled=true&count=10",
+            "http://example.com?enabled=true&count=10",
             {"scheme": "http", "host": "example.com", "query": {"enabled": True, "count": 10}},
         ),
         # Query string with mixed types
         (
-            "http://example.com/?bool=true&int=42&float=3.14&str=hello",
+            "http://example.com?bool=true&int=42&float=3.14&str=hello",
             {
                 "scheme": "http",
                 "host": "example.com",
@@ -94,12 +94,12 @@ def test_query_parameters_simple(expected: str, url_components: dict) -> None:
         ),
         # Query string with empty values and None
         (
-            "http://example.com/?empty=&none",
+            "http://example.com?empty=&none",
             {"scheme": "http", "host": "example.com", "query": {"empty": "", "none": None}},
         ),  # Encodes None as a key without value
         # Mixed pre-encoded and non-encoded queries
         (
-            "http://example.com/?category=electronics&query=search%20results&page=2",
+            "http://example.com?category=electronics&query=search%20results&page=2",
             {
                 "scheme": "http",
                 "host": "example.com",
@@ -127,12 +127,12 @@ def test_query_parameters_types(expected: str, url_components: dict) -> None:
             },
         ),
         (
-            "http://example.com/?search=hello%20world",
+            "http://example.com?search=hello%20world",
             {"scheme": "http", "host": "example.com", "query": "search=hello%20world"},
         ),
         # Special characters in query strings (percent-encoded)
         (
-            "http://example.com/?query=%40username%21%24%25%5E&email=user%40example.com",
+            "http://example.com?query=%40username%21%24%25%5E&email=user%40example.com",
             {
                 "scheme": "http",
                 "host": "example.com",
@@ -140,7 +140,7 @@ def test_query_parameters_types(expected: str, url_components: dict) -> None:
             },
         ),
         (
-            "http://example.com/?query=%3Cscript%3Ealert%281%29%3C%2Fscript%3E",
+            "http://example.com?query=%3Cscript%3Ealert%281%29%3C%2Fscript%3E",
             {
                 "scheme": "http",
                 "host": "example.com",
@@ -149,7 +149,7 @@ def test_query_parameters_types(expected: str, url_components: dict) -> None:
         ),  # Encodes HTML/JS characters
         # Query string with international characters (encoded as UTF-8)
         (
-            "http://example.com/?search=%C3%A9l%C3%A9phant&lang=fr",
+            "http://example.com?search=%C3%A9l%C3%A9phant&lang=fr",
             {
                 "scheme": "http",
                 "host": "example.com",
@@ -157,21 +157,21 @@ def test_query_parameters_types(expected: str, url_components: dict) -> None:
             },
         ),  # Encoded UTF-8 for accented characters
         (
-            "http://example.com/?greeting=%E6%97%A5%E6%9C%AC%E8%AA%9E",
+            "http://example.com?greeting=%E6%97%A5%E6%9C%AC%E8%AA%9E",
             {"scheme": "http", "host": "example.com", "query": {"greeting": "日本語"}},
         ),  # Japanese characters
         # Query string with special symbols
         (
-            "http://example.com/?query=%3C%3E%26%23%25",
+            "http://example.com?query=%3C%3E%26%23%25",
             {"scheme": "http", "host": "example.com", "query": {"query": "<>&#%"}},
         ),  # Encodes <, >, &, #, %
         (
-            "http://example.com/?password=%40dm1n%24ecure%21",
+            "http://example.com?password=%40dm1n%24ecure%21",
             {"scheme": "http", "host": "example.com", "query": {"password": "@dm1n$ecure!"}},
         ),  # Encodes special characters in passwords
         # Pre-encoded query string with nested parameters
         (
-            "http://example.com/?filter%5Bcategory%5D=electronics&filter%5Bprice%5D%5Bmin%5D=20&filter%5Bprice%5D%5Bmax%5D=500",
+            "http://example.com?filter%5Bcategory%5D=electronics&filter%5Bprice%5D%5Bmin%5D=20&filter%5Bprice%5D%5Bmax%5D=500",
             {
                 "scheme": "http",
                 "host": "example.com",
@@ -189,7 +189,7 @@ def test_query_parameters_base_encoding(expected: str, url_components: dict) -> 
     "expected,url_components",
     [
         (
-            "http://example.com/?foo=bar",
+            "http://example.com?foo=bar",
             {
                 "scheme": "http",
                 "host": "example.com",
@@ -198,7 +198,7 @@ def test_query_parameters_base_encoding(expected: str, url_components: dict) -> 
             },
         ),
         (
-            "http://example.com/?foo=bar<>baz=qux",
+            "http://example.com?foo=bar<>baz=qux",
             {
                 "scheme": "http",
                 "host": "example.com",
@@ -207,7 +207,7 @@ def test_query_parameters_base_encoding(expected: str, url_components: dict) -> 
             },
         ),
         (
-            "http://example.com/?foo=/bar/baz",
+            "http://example.com?foo=/bar/baz",
             {
                 "scheme": "http",
                 "host": "example.com",
@@ -216,7 +216,7 @@ def test_query_parameters_base_encoding(expected: str, url_components: dict) -> 
             },
         ),
         (
-            "http://example.com/?foo=bar%20baz",
+            "http://example.com?foo=bar%20baz",
             {
                 "scheme": "http",
                 "host": "example.com",
@@ -225,7 +225,7 @@ def test_query_parameters_base_encoding(expected: str, url_components: dict) -> 
             },
         ),
         (
-            "http://example.com/?foo=bar+baz",
+            "http://example.com?foo=bar+baz",
             {
                 "scheme": "http",
                 "host": "example.com",
@@ -234,7 +234,7 @@ def test_query_parameters_base_encoding(expected: str, url_components: dict) -> 
             },
         ),
         (
-            "http://example.com/?foo=bar+baz",
+            "http://example.com?foo=bar+baz",
             {
                 "scheme": "http",
                 "host": "example.com",
@@ -371,7 +371,7 @@ def test_query_options_object() -> None:
     """Test that setting QuerySet as a query value works."""
     url = HttpUrl(scheme="http", host="example.com", query={"foo": QueryValue("bar")})
     url.query["baz"] = QueryValue("qux")
-    assert str(url) == "http://example.com/?foo=bar&baz=qux"
+    assert str(url) == "http://example.com?foo=bar&baz=qux"
 
 
 def test_query_options_after() -> None:

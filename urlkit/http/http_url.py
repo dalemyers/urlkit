@@ -83,10 +83,6 @@ class HttpUrl(URL):
         if self._path:
             output += str(self._path)
 
-        # We usually see the root path if a query is there.
-        if not self._path and self._query:
-            output += "/"
-
         if self._query:
             output += f"?{self._query}"
 
@@ -237,7 +233,7 @@ class HttpUrl(URL):
         if value is None:
             # This isn't great, but otherwise the consumer always needs to
             # check if the path is None.
-            self._path = HttpPath([], from_root=True)
+            self._path = HttpPath([], from_root=True, is_empty=True)
             return
 
         if isinstance(value, str):
