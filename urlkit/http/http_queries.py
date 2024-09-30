@@ -1,5 +1,6 @@
 """URL utility library."""
 
+import copy
 import enum
 from typing import Any
 import urllib.parse
@@ -28,6 +29,15 @@ class QueryOptions:
         self.query_joiner = query_joiner
         self.safe_characters = safe_characters
         self.space_encoding = space_encoding
+
+    def __deepcopy__(self, memo: dict) -> "QueryOptions":
+        """Copy the QueryOptions object."""
+
+        return QueryOptions(
+            query_joiner=self.query_joiner,
+            safe_characters=self.safe_characters,
+            space_encoding=self.space_encoding,
+        )
 
     def __eq__(self, other: Any) -> bool:
         """Check if two QueryOptions objects are equal."""
@@ -66,6 +76,11 @@ class QueryValue:
 
         self.value = value
         self.encoded = encoded
+
+    def __deepcopy__(self, memo: dict) -> "QueryValue":
+        """Copy the QueryValue object."""
+
+        return QueryValue(self.value, encoded=self.encoded)
 
     def __eq__(self, other: Any) -> bool:
         """Check if two QueryValue objects are equal."""
@@ -110,6 +125,17 @@ class QuerySet(dict[str, QueryValue]):
         if values:
             for k, v in values.items():
                 self.__setitem_encoded(k, v, not assume_unencoded)
+
+    def __deepcopy__(self, memo: dict) -> "QuerySet":
+        """Copy the QuerySet object."""
+
+        new_values = {}
+
+        for key in self.keys():
+            value = super().__getitem__(key)
+            new_values[key] = copy.deepcopy(value, memo)
+
+        return QuerySet(self.options, values=new_values, assume_unencoded=False)
 
     def __setitem_encoded(self, key: str, value: Any, encoded: bool) -> None:
         """Set the query parameter and the flag stating whether or not it is encoded.

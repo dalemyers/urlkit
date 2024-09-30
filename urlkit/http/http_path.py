@@ -17,6 +17,11 @@ class HttpPath:
         self.components = components[:]
         self.from_root = from_root
 
+    def __deepcopy__(self, memo: dict) -> "HttpPath":
+        """Copy the HttpPath object."""
+
+        return HttpPath(self.components[:], self.from_root)
+
     def __eq__(self, other: Any) -> bool:
         """Check if two HttpPath objects are equal."""
 

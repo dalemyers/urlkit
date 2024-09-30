@@ -1,5 +1,6 @@
 """URL utility library."""
 
+import copy
 from typing import Any, cast, Literal
 
 from ..url import URL
@@ -15,7 +16,7 @@ class HttpUrl(URL):
     _password: str | None
     _host: str | None
     _port: int | None
-    _path: HttpPath | None
+    _path: HttpPath
     _parameters: str | None
     _query: QuerySet
     _fragment: str | None
@@ -43,7 +44,7 @@ class HttpUrl(URL):
         self.password = password
         self.host = host
         self.port = port
-        self.path = path
+        self.path = path  # type: ignore
         self.parameters = parameters
         # Needs to be set before query as we use it in the query setter
         self.query_options = query_options
@@ -51,6 +52,25 @@ class HttpUrl(URL):
         self.fragment = fragment
 
     # pylint: enable=too-many-arguments
+
+    def __deepcopy__(self, memo: dict) -> "HttpUrl":
+        """Create a copy of the URL object."""
+        return HttpUrl(
+            scheme=self.scheme,
+            username=self.username,
+            password=self.password,
+            host=self.host,
+            port=self.port,
+            path=copy.deepcopy(self.path, memo),
+            parameters=self.parameters,
+            query=copy.deepcopy(self.query, memo),
+            fragment=self.fragment,
+            query_options=copy.deepcopy(self.query_options, memo),
+        )
+
+    def copy(self) -> "HttpUrl":
+        """Create a copy of the URL object."""
+        return copy.deepcopy(self)
 
     def __str__(self) -> str:
         """Construct the URL string representation."""
@@ -207,15 +227,17 @@ class HttpUrl(URL):
         return output
 
     @property
-    def path(self) -> HttpPath | str | None:
+    def path(self) -> HttpPath:
         """Get the URL path."""
         return self._path
 
     @path.setter
-    def path(self, value: str | HttpPath | None) -> None:
+    def path(self, value: str | HttpPath) -> None:
         """Set the URL path."""
         if value is None:
-            self._path = None
+            # This isn't great, but otherwise the consumer always needs to
+            # check if the path is None.
+            self._path = HttpPath([], from_root=True)
             return
 
         if isinstance(value, str):
