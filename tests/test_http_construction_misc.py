@@ -7,7 +7,7 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-from urlkit.http.http_url import HttpUrl
+from urlkit.http import HttpUrl
 from urlkit.http.http_queries import QueryOptions, SpaceEncoding, QuerySet
 
 # pylint: enable=wrong-import-position

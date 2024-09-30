@@ -1,6 +1,6 @@
 """URL utility library."""
 
-from typing import Any, cast, Literal, Union
+from typing import Any, cast, Literal
 
 from ..url import URL
 from .http_queries import QueryOptions, decode_query_value, QueryValue, QuerySet

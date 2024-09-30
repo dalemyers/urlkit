@@ -9,7 +9,8 @@ from utilities import assert_http_parse_expected_vs_url
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-from urlkit.http.http_url import HttpUrl, _parse_http_or_https_url, QueryOptions, QuerySet
+from urlkit.http import HttpUrl, QueryOptions, QuerySet
+from urlkit.http.http_url import _parse_http_or_https_url
 
 # pylint: enable=wrong-import-position
 

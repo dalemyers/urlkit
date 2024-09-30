@@ -5,7 +5,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-from urlkit.http.http_url import HttpUrl, QueryOptions
+from urlkit.http import HttpUrl, QueryOptions
 
 
 def assert_http_construction_expected_vs_components(expected: str, url_components: dict) -> None:
