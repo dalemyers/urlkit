@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "urlkit"
-version = "0.2.1"
+version = "0.2.2"
 description = "Working with URLs using urllib is a bit of a pain. urlkit makes everything much easier."
 authors = ["Dale Myers <dale@myers.io>"]
 license = "MIT"
