@@ -1,16 +1,16 @@
 """URL utility library."""
 
-from typing import Any, cast, Union
+from typing import Any, cast, Literal, Union
 
 from ..url import URL
 from .http_queries import QueryOptions, decode_query_value, QueryValue, QuerySet
 from .http_path import HttpPath
 
 
-class BaseHttpOrHttpsUrl(URL):
-    """A HTTP URL representation."""
+class HttpUrl(URL):
+    """A HTTP(s) URL representation."""
 
-    _scheme: str
+    _scheme: Literal["http", "https"]
     _username: str | None
     _password: str | None
     _host: str | None
@@ -25,7 +25,7 @@ class BaseHttpOrHttpsUrl(URL):
     def __init__(
         self,
         *,
-        scheme: str,
+        scheme: Literal["http", "https"],
         username: str | None = None,
         password: str | None = None,
         host: str | None,  # This is usually set, so we won't give a default.
@@ -81,7 +81,7 @@ class BaseHttpOrHttpsUrl(URL):
     def __eq__(self, other: object) -> bool:
         """Check if two URL objects are equal."""
 
-        if not isinstance(other, BaseHttpOrHttpsUrl):
+        if not isinstance(other, HttpUrl):
             return False
 
         return (
@@ -115,12 +115,12 @@ class BaseHttpOrHttpsUrl(URL):
         )
 
     @property
-    def scheme(self) -> str:
+    def scheme(self) -> Literal["http", "https"]:
         """Get the URL scheme."""
-        return self._scheme
+        return cast(Literal["http", "https"], self._scheme)
 
     @scheme.setter
-    def scheme(self, value: str) -> None:
+    def scheme(self, value: Literal["http", "https"]) -> None:
         """Set the URL scheme."""
         if value not in ("http", "https"):
             raise ValueError(f"Scheme: Expected 'http' or 'https', got {value}")
@@ -332,125 +332,10 @@ class BaseHttpOrHttpsUrl(URL):
             getattr(self, "_query").options = value
 
     @classmethod
-    def parse(
-        cls, string: str, query_options: QueryOptions = QueryOptions()
-    ) -> Union["HttpUrl", "HttpsUrl"]:
-        """Parse a URL string into a URL object."""
-
-        result = parse_http_or_https_url(string, query_options)
-
-        if result.scheme == "http":
-            return cast(HttpUrl, result)
-
-        return cast(HttpsUrl, result)
-
-
-class HttpUrl(BaseHttpOrHttpsUrl):
-    """A HTTP URL representation."""
-
-    # pylint: disable=too-many-arguments
-    def __init__(
-        self,
-        *,
-        username: str | None = None,
-        password: str | None = None,
-        host: str | None,  # This is usually set, so we won't give a default.
-        port: int | str | None = None,
-        path: str | None = None,
-        parameters: str | None = None,
-        query: dict[str, Any] | str | None = None,
-        fragment: str | None = None,
-        query_options: QueryOptions = QueryOptions(),
-    ) -> None:
-        super().__init__(
-            scheme="http",
-            username=username,
-            password=password,
-            host=host,
-            port=port,
-            path=path,
-            parameters=parameters,
-            query=query,
-            fragment=fragment,
-            query_options=query_options,
-        )
-
-    # pylint: enable=too-many-arguments
-
-    @classmethod
     def parse(cls, string: str, query_options: QueryOptions = QueryOptions()) -> "HttpUrl":
         """Parse a URL string into a URL object."""
 
-        if not string.startswith("http://"):
-            raise ValueError("URL: Expected 'http://' prefix")
-
-        parsed = BaseHttpOrHttpsUrl.parse(string, query_options)
-
-        return HttpUrl(
-            username=parsed.username,
-            password=parsed.password,
-            host=parsed.host,
-            port=parsed.port,
-            path=parsed.path,  # type: ignore
-            parameters=parsed.parameters,
-            query=parsed.query,
-            fragment=parsed.fragment,
-            query_options=parsed.query_options,
-        )
-
-
-class HttpsUrl(BaseHttpOrHttpsUrl):
-    """A HTTPS URL representation."""
-
-    # pylint: disable=too-many-arguments
-    def __init__(
-        self,
-        *,
-        username: str | None = None,
-        password: str | None = None,
-        host: str | None,  # This is usually set, so we won't give a default.
-        port: int | str | None = None,
-        path: str | None = None,
-        parameters: str | None = None,
-        query: dict[str, Any] | str | None = None,
-        fragment: str | None = None,
-        query_options: QueryOptions = QueryOptions(),
-    ) -> None:
-        super().__init__(
-            scheme="https",
-            username=username,
-            password=password,
-            host=host,
-            port=port,
-            path=path,
-            parameters=parameters,
-            query=query,
-            fragment=fragment,
-            query_options=query_options,
-        )
-
-    # pylint: disable=too-many-arguments
-
-    @classmethod
-    def parse(cls, string: str, query_options: QueryOptions = QueryOptions()) -> "HttpsUrl":
-        """Parse a URL string into a URL object."""
-
-        if not string.startswith("https://"):
-            raise ValueError("URL: Expected 'https://' prefix")
-
-        parsed = BaseHttpOrHttpsUrl.parse(string, query_options)
-
-        return HttpsUrl(
-            username=parsed.username,
-            password=parsed.password,
-            host=parsed.host,
-            port=parsed.port,
-            path=parsed.path,  # type: ignore
-            parameters=parsed.parameters,
-            query=parsed.query,
-            fragment=parsed.fragment,
-            query_options=parsed.query_options,
-        )
+        return _parse_http_or_https_url(string, query_options)
 
 
 def _parse_net_loc(net_loc: str) -> tuple[str | None, str | None, str | None, int | None]:
@@ -509,9 +394,7 @@ def _parse_net_loc(net_loc: str) -> tuple[str | None, str | None, str | None, in
 
 
 # pylint: disable=too-many-branches
-def parse_http_or_https_url(
-    value: str, query_options: QueryOptions = QueryOptions()
-) -> BaseHttpOrHttpsUrl:
+def _parse_http_or_https_url(value: str, query_options: QueryOptions = QueryOptions()) -> HttpUrl:
     """Parse a HTTP or HTTPS URL."""
 
     # This comes from https://datatracker.ietf.org/doc/html/rfc1808
@@ -649,19 +532,8 @@ def parse_http_or_https_url(
     else:
         path = value
 
-    if scheme == "http":
-        return HttpUrl(
-            username=username,
-            password=password,
-            host=host,
-            port=port,
-            path=path,
-            query=query,
-            fragment=fragment,
-            query_options=query_options,
-        )
-
-    return HttpsUrl(
+    return HttpUrl(
+        scheme=scheme,
         username=username,
         password=password,
         host=host,

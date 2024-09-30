@@ -10,9 +10,12 @@ from utilities import assert_http_construction_expected_vs_components
     [
         (
             "http://hodor:stark@example.com",
-            {"host": "example.com", "username": "hodor", "password": "stark"},
+            {"scheme": "http", "host": "example.com", "username": "hodor", "password": "stark"},
         ),
-        ("http://hodor:stark@moo", {"host": "moo", "username": "hodor", "password": "stark"}),
+        (
+            "http://hodor:stark@moo",
+            {"scheme": "http", "host": "moo", "username": "hodor", "password": "stark"},
+        ),
     ],
 )
 def test_usernames(expected: str, url_components: dict) -> None:

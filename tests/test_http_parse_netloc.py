@@ -7,7 +7,7 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-from urlkit.http.http_url import parse_http_or_https_url
+from urlkit.http.http_url import _parse_http_or_https_url
 
 # pylint: enable=wrong-import-position
 
@@ -24,7 +24,7 @@ from urlkit.http.http_url import parse_http_or_https_url
 )
 def test_netloc(url: str, expected: str) -> None:
     """Test that we can construct URLs correctly."""
-    assert parse_http_or_https_url(url).netloc == expected
+    assert _parse_http_or_https_url(url).netloc == expected
 
 
 @pytest.mark.parametrize(
@@ -36,4 +36,4 @@ def test_netloc(url: str, expected: str) -> None:
 )
 def test_relative(url: str, expected: str) -> None:
     """Test that we can construct URLs correctly."""
-    assert parse_http_or_https_url(url).netloc == expected
+    assert _parse_http_or_https_url(url).netloc == expected

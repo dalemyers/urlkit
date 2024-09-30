@@ -20,16 +20,21 @@ from urlkit.http.http_url import HttpUrl
         (
             "http://example.com/abc?def=ghi&jkl=mno#pqr",
             {
+                "scheme": "http",
                 "host": "example.com",
                 "path": "/abc",
                 "query": {"def": "ghi", "jkl": "mno"},
                 "fragment": "pqr",
             },
         ),
-        ("http://example.com#section1", {"host": "example.com", "fragment": "section1"}),
+        (
+            "http://example.com#section1",
+            {"scheme": "http", "host": "example.com", "fragment": "section1"},
+        ),
         (
             "http://example.com/some/path#section2",
             {
+                "scheme": "http",
                 "host": "example.com",
                 "path": "/some/path",
                 "fragment": "section2",
@@ -51,5 +56,5 @@ def test_fragment_invalid_type() -> None:
 
 def test_fragment_property() -> None:
     """Test that reading back the property gives the same value."""
-    a = HttpUrl(host="example.com", fragment="section1")
+    a = HttpUrl(scheme="http", host="example.com", fragment="section1")
     assert a.fragment == "section1"

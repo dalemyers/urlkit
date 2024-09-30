@@ -67,31 +67,24 @@ The types in the table are intended to have eventual functionality. It shows whi
 #### Constructing URLs
 
 ```python
-url = HttpUrl(host="example.com", port=12345, query={"search_text": "Hello World"})
+url = HttpUrl(scheme="http", host="example.com", port=12345, query={"search_text": "Hello World"})
 str(url) # http://example.com:12345/?search_text=Hello%20World
 
-url = HttpUrl(host="example.com", query={"search_text": "Hello World"}, query_options=QueryOptions(space_encoding=SpaceEncoding.PLUS))
+url = HttpUrl(scheme="http", host="example.com", query={"search_text": "Hello World"}, query_options=QueryOptions(space_encoding=SpaceEncoding.PLUS))
 str(url) # http://example.com:12345/?search_text=Hello+World
 
-url = HttpUrl(host="example.com", query="some%20pre-encoded%20text")
+url = HttpUrl(scheme="http", host="example.com", query="some%20pre-encoded%20text")
 str(url) # http://example.com/?some%20pre-encoded%20text
 ```
 
 #### Parsing URLs
 
 ```python
-# Parsing a HTTP URL:
+# Parsing a HTTP(s) URL:
 http_url = HttpUrl.parse("http://username:password@example.com/search?description=Some%20Text")
 http_url.path # /search
 http_url.query # {"description": "Some Text"}
 http_url.password # password
-
-# Parsing a HTTPS URL:
-https_url = HttpsUrl.parse("https://username:password@example.com/search?description=Some%20Text")
-
-# Parsing either (unknown):
-http_or_https_url = parse_http_or_https_url("http://username:password@example.com/search?description=Some%20Text")
-type(http_or_https_url) # <class 'urlkit.http_url.HttpUrl'> - Automatically returns the correct type
 ```
 
 #### Modifying URLs

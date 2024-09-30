@@ -17,11 +17,11 @@ from urlkit.http.http_url import HttpUrl
 @pytest.mark.parametrize(
     "expected,url_components",
     [
-        ("http://example.com:8080", {"host": "example.com", "port": 8080}),
-        ("http://moo:999", {"host": "moo", "port": 999}),
-        ("http://example.com:443", {"host": "example.com", "port": 443}),
-        ("http://example.com:443", {"host": "example.com", "port": "443"}),
-        ("http://example.com", {"host": "example.com", "port": None}),
+        ("http://example.com:8080", {"scheme": "http", "host": "example.com", "port": 8080}),
+        ("http://moo:999", {"scheme": "http", "host": "moo", "port": 999}),
+        ("http://example.com:443", {"scheme": "http", "host": "example.com", "port": 443}),
+        ("http://example.com:443", {"scheme": "http", "host": "example.com", "port": "443"}),
+        ("http://example.com", {"scheme": "http", "host": "example.com", "port": None}),
     ],
 )
 def test_ports(expected: str, url_components: dict) -> None:
@@ -32,18 +32,18 @@ def test_ports(expected: str, url_components: dict) -> None:
 def test_port_invalid_value() -> None:
     """Test that we can construct URLs correctly."""
     with pytest.raises(ValueError):
-        url_components = {"host": "example.com", "port": "foo"}
+        url_components = {"scheme": "http", "host": "example.com", "port": "foo"}
         assert_http_construction_expected_vs_components("", url_components)
 
 
 def test_port_invalid_range() -> None:
     """Test that we can construct URLs correctly."""
     with pytest.raises(ValueError):
-        url_components = {"host": "example.com", "port": 100_000}
+        url_components = {"scheme": "http", "host": "example.com", "port": 100_000}
         assert_http_construction_expected_vs_components("", url_components)
 
 
 def test_port_property() -> None:
     """Test that reading back the property gives the same value."""
-    a = HttpUrl(host="example.com", port=9326)
+    a = HttpUrl(scheme="http", host="example.com", port=9326)
     assert a.port == 9326

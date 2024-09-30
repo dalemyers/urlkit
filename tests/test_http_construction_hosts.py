@@ -17,8 +17,8 @@ from urlkit.http.http_url import HttpUrl
 @pytest.mark.parametrize(
     "expected,url_components",
     [
-        ("http://example.com", {"host": "example.com"}),
-        ("http://moo", {"host": "moo"}),
+        ("http://example.com", {"scheme": "http", "host": "example.com"}),
+        ("http://moo", {"scheme": "http", "host": "moo"}),
     ],
 )
 def test_hosts(expected: str, url_components: dict) -> None:
@@ -29,10 +29,10 @@ def test_hosts(expected: str, url_components: dict) -> None:
 def test_host_invalid_value() -> None:
     """Test that we can construct URLs correctly."""
     with pytest.raises(TypeError):
-        _ = HttpUrl(host=["foo.com"])  # type: ignore
+        _ = HttpUrl(scheme="http", host=["foo.com"])  # type: ignore
 
 
 def test_host_property() -> None:
     """Test that reading back the property gives the same value."""
-    a = HttpUrl(host="example.com")
+    a = HttpUrl(scheme="http", host="example.com")
     assert a.host == "example.com"

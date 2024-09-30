@@ -9,7 +9,7 @@ from utilities import assert_http_parse_expected_vs_url
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 # pylint: disable=wrong-import-position
-from urlkit.http.http_url import HttpUrl, HttpsUrl, parse_http_or_https_url, QueryOptions, QuerySet
+from urlkit.http.http_url import HttpUrl, _parse_http_or_https_url, QueryOptions, QuerySet
 
 # pylint: enable=wrong-import-position
 
@@ -225,7 +225,7 @@ def test_full(url: str, url_components: dict) -> None:
 def test_calling_parse_on_class() -> None:
     """Test that we can construct URLs correctly."""
     assert HttpUrl.parse("http://example.com") is not None
-    assert HttpsUrl.parse("https://example.com") is not None
+    assert HttpUrl.parse("https://example.com") is not None
 
 
 def test_invalid_scheme() -> None:
@@ -239,7 +239,4 @@ def test_invalid_scheme() -> None:
         HttpUrl.parse("hodor://example.com")
 
     with pytest.raises(ValueError):
-        HttpsUrl.parse("hodor://example.com")
-
-    with pytest.raises(ValueError):
-        parse_http_or_https_url("hodor://example.com")
+        _parse_http_or_https_url("hodor://example.com")
