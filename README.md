@@ -91,12 +91,12 @@ http_url.password # password
 
 ```python
 url = HttpUrl.parse("http://example.com/foo/bar") # http://example.com/foo/bar
-url.path.append_component("baz") # http://example.com/foo/bar/baz
-url.path.append_component("one/two") # http://example.com/foo/bar/baz/one/two
+url.path.append("baz") # http://example.com/foo/bar/baz
+url.path.append("one/two") # http://example.com/foo/bar/baz/one/two
 url.path.pop_last() # http://example.com/foo/bar/baz/one
 url.path.pop_last() # http://example.com/foo/bar/baz
 url.path.pop_last() # http://example.com/foo/bar
-url.path.extend(["baz", "one", "two"]) # http://example.com/foo/bar/baz/one/two
+url.path.append(["baz", "one", "two"]) # http://example.com/foo/bar/baz/one/two
 ```
 
 ## Explicitly Non-Supported Features

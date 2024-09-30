@@ -1,4 +1,4 @@
-"""URL utility library."""
+"""HTTP Path utilities."""
 
 from typing import Any
 
@@ -40,19 +40,16 @@ class HttpPath:
 
         return path
 
-    def append_component(self, component: str) -> None:
+    def append(self, subpath: str | list[str]) -> None:
         """Append a component to the path."""
 
-        if "/" in component:
-            self.extend(component.split("/"))
+        if isinstance(subpath, list):
+            for component in subpath:
+                self.append(component)
+        elif "/" in subpath:
+            self.components += subpath.split("/")
         else:
-            self.components.append(component)
-
-    def extend(self, components: list[str]) -> None:
-        """Extend the path with multiple components."""
-
-        for component in components:
-            self.append_component(component)
+            self.components.append(subpath)
 
     def pop_last(self) -> str:
         """Pop the last component from the path."""

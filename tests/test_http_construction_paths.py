@@ -106,13 +106,13 @@ def test_http_path_equality() -> None:
 def test_http_path_append_pop() -> None:
     """Test that we can append to paths."""
     path = HttpPath([], from_root=False)
-    path.append_component("a")
+    path.append("a")
     assert path == HttpPath(["a"])
-    path.append_component("b")
+    path.append("b")
     assert path == HttpPath(["a", "b"])
-    path.append_component("c")
+    path.append("c")
     assert path == HttpPath(["a", "b", "c"])
-    path.append_component("d/e")
+    path.append("d/e")
     assert path == HttpPath(["a", "b", "c", "d", "e"])
     path.pop_last()
     assert path == HttpPath(["a", "b", "c", "d"])
