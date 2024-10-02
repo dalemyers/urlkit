@@ -467,6 +467,8 @@ def _parse_http_or_https_url(value: str, query_options: QueryOptions = QueryOpti
     else:
         raise ValueError("URL: Expected 'http://' or 'https://' prefix")
 
+    assert scheme in ("http", "https")
+
     # We are now left with a relativeURL.
 
     # Rule 4: relativeURL = net_path | abs_path | rel_path
@@ -551,7 +553,7 @@ def _parse_http_or_https_url(value: str, query_options: QueryOptions = QueryOpti
         path = value
 
     return HttpUrl(
-        scheme=scheme,
+        scheme=scheme,  # type: ignore # We check this above
         username=username,
         password=password,
         host=host,

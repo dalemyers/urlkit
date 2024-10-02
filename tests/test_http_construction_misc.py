@@ -16,7 +16,7 @@ from urlkit.http.http_queries import QueryOptions, SpaceEncoding, QuerySet
 def test_scheme_invalid_value() -> None:
     """Test that we can construct URLs correctly."""
     with pytest.raises(ValueError):
-        _ = HttpUrl(scheme="hodor", host="example.com")
+        _ = HttpUrl(scheme="hodor", host="example.com")  # type: ignore
 
 
 def test_schemeproperty() -> None:
