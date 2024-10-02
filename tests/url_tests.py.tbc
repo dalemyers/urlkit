@@ -48,11 +48,11 @@ URL: {
 }
 URL: {
     "expected": {"stdout": "https://example.com/?search=hello\n", "stderr": "", "returncode": 0},
-    "arguments": ["https://example.com?search=hello&utm_source=tracker", "--trim", "query=utm_*"],
+    "arguments": ["https://example.com/?search=hello&utm_source=tracker", "--trim", "query=utm_*"],
 }
 URL: {
     "expected": {"stdout": "https://example.com/?search=hello\n", "stderr": "", "returncode": 0},
-    "arguments": ["https://example.com?search=hello&utm_source=tracker", "--qtrim", "utm_*"],
+    "arguments": ["https://example.com/?search=hello&utm_source=tracker", "--qtrim", "utm_*"],
 }
 URL: {
     "expected": {
@@ -61,7 +61,7 @@ URL: {
         "returncode": 0,
     },
     "arguments": [
-        "https://example.com?search=hello&utm_source=tracker&more=data",
+        "https://example.com/?search=hello&utm_source=tracker&more=data",
         "--trim",
         "query=utm_*",
     ],
@@ -73,7 +73,7 @@ URL: {
         "returncode": 0,
     },
     "arguments": [
-        "https://example.com?search=hello&utm_source=tracker&more=data",
+        "https://example.com/?search=hello&utm_source=tracker&more=data",
         "--qtrim",
         "utm_*",
     ],
@@ -84,11 +84,11 @@ URL: {
         "stderr": "",
         "returncode": 0,
     },
-    "arguments": ["https://example.com?search=hello&more=data", "--qtrim", "utm_*"],
+    "arguments": ["https://example.com/?search=hello&more=data", "--qtrim", "utm_*"],
 }
 URL: {
     "expected": {"stdout": "https://example.com/\n", "stderr": "", "returncode": 0},
-    "arguments": ["https://example.com?utm_source=tracker", "--trim", "query=utm_*"],
+    "arguments": ["https://example.com/?utm_source=tracker", "--trim", "query=utm_*"],
 }
 URL: {
     "expected": {
@@ -97,7 +97,7 @@ URL: {
         "returncode": 0,
     },
     "arguments": [
-        "https://example.com?search=hello&utm_source=tracker&more=data",
+        "https://example.com/?search=hello&utm_source=tracker&more=data",
         "--qtrim",
         "utm_source",
     ],
@@ -105,7 +105,7 @@ URL: {
 URL: {
     "expected": {"stdout": "https://example.com/\n", "stderr": "", "returncode": 0},
     "arguments": [
-        "https://example.com?search=hello&utm_source=tracker&more=data",
+        "https://example.com/?search=hello&utm_source=tracker&more=data",
         "--qtrim",
         "utm_source",
         "--qtrim",
@@ -120,15 +120,15 @@ URL: {
 }
 URL: {
     "expected": {"stdout": "https://example.com/?moo\n", "stderr": "", "returncode": 0},
-    "arguments": ["https://example.com?moo&search=hello", "--qtrim", "search"],
+    "arguments": ["https://example.com/?moo&search=hello", "--qtrim", "search"],
 }
 URL: {
     "expected": {"stdout": "https://example.com/?moo\n", "stderr": "", "returncode": 0},
-    "arguments": ["https://example.com?search=hello&moo", "--qtrim", "search"],
+    "arguments": ["https://example.com/?search=hello&moo", "--qtrim", "search"],
 }
 URL: {
     "expected": {"stdout": "https://example.com/?moo\n", "stderr": "", "returncode": 0},
-    "arguments": ["https://example.com?search=hello", "--qtrim", "search", "--append", "query=moo"],
+    "arguments": ["https://example.com/?search=hello", "--qtrim", "search", "--append", "query=moo"],
 }
 URL: {
     "expected": {"stdout": "ftp://hello:443/foo\n", "stderr": "", "returncode": 0},
@@ -137,7 +137,7 @@ URL: {
 URL: {
     "expected": {"stdout": "tra cker\n", "stderr": "", "returncode": 0},
     "arguments": [
-        "https://example.com?utm_source=tra%20cker&address%20=home&here=now&thisthen",
+        "https://example.com/?utm_source=tra%20cker&address%20=home&here=now&thisthen",
         "-g",
         "{query:utm_source}",
     ],
@@ -145,7 +145,7 @@ URL: {
 URL: {
     "expected": {"stdout": "tra+cker\n", "stderr": "", "returncode": 0},
     "arguments": [
-        "https://example.com?utm_source=tra%20cker&address%20=home&here=now&thisthen",
+        "https://example.com/?utm_source=tra%20cker&address%20=home&here=now&thisthen",
         "-g",
         "{:query:utm_source}",
     ],
@@ -153,7 +153,7 @@ URL: {
 URL: {
     "expected": {"stdout": "\n", "stderr": "", "returncode": 0},
     "arguments": [
-        "https://example.com?utm_source=tra%20cker&address%20=home&here=now&thisthen",
+        "https://example.com/?utm_source=tra%20cker&address%20=home&here=now&thisthen",
         "-g",
         "{:query:utm_}",
     ],
@@ -161,7 +161,7 @@ URL: {
 URL: {
     "expected": {"stdout": "\n", "stderr": "", "returncode": 0},
     "arguments": [
-        "https://example.com?utm_source=tra%20cker&address%20=home&here=now&thisthen",
+        "https://example.com/?utm_source=tra%20cker&address%20=home&here=now&thisthen",
         "-g",
         "{:query:UTM_SOURCE}",
     ],
@@ -172,15 +172,15 @@ URL: {
         "stderr": "",
         "returncode": 0,
     },
-    "arguments": ["https://example.com?utm_source=tracker&monkey=123", "--sort-query"],
+    "arguments": ["https://example.com/?utm_source=tracker&monkey=123", "--sort-query"],
 }
 URL: {
     "expected": {"stdout": "https://example.com/?a=b&c=d\n", "stderr": "", "returncode": 0},
-    "arguments": ["https://example.com?a=b&c=d&", "--sort-query"],
+    "arguments": ["https://example.com/?a=b&c=d&", "--sort-query"],
 }
 URL: {
     "expected": {"stdout": "https://example.com/?c=d\n", "stderr": "", "returncode": 0},
-    "arguments": ["https://example.com?a=b&c=d&", "--sort-query", "--trim", "query=a"],
+    "arguments": ["https://example.com/?a=b&c=d&", "--sort-query", "--trim", "query=a"],
 }
 URL: {
     "expected": {"stdout": "http://example.com/\n", "stderr": "", "returncode": 0},
@@ -193,7 +193,7 @@ URL: {
         "returncode": 0,
     },
     "arguments": [
-        "https://example.com?utm=tra%20cker:address%20=home:here=now:thisthen",
+        "https://example.com/?utm=tra%20cker:address%20=home:here=now:thisthen",
         "--sort-query",
         "--query-separator",
         ":",
@@ -257,7 +257,7 @@ URL: {
 }
 URL: {
     "expected": {"stdout": "https://example.com/?a=123&b=foo\n", "stderr": "", "returncode": 0},
-    "arguments": ["https://example.com?a=123&b=321&b=987", "--replace", "b=foo"],
+    "arguments": ["https://example.com/?a=123&b=321&b=987", "--replace", "b=foo"],
 }
 URL: {
     "expected": {

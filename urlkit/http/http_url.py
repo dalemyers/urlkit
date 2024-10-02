@@ -44,7 +44,7 @@ class HttpUrl(URL):
         self.password = password
         self.host = host
         self.port = port
-        self.path = path  # type: ignore
+        self.path = path if path else HttpPath()  # type: ignore
         self.parameters = parameters
         # Needs to be set before query as we use it in the query setter
         self.query_options = query_options
@@ -80,8 +80,10 @@ class HttpUrl(URL):
         if netloc := self.netloc:
             output += "//" + netloc
 
-        if self._path:
+        if self._path and len(self._path.components) > 0:
             output += str(self._path)
+        elif self._query:
+            output += "/"
 
         if self._query:
             output += f"?{self._query}"
@@ -230,27 +232,20 @@ class HttpUrl(URL):
     @path.setter
     def path(self, value: str | HttpPath) -> None:
         """Set the URL path."""
-        if value is None:
-            # This isn't great, but otherwise the consumer always needs to
-            # check if the path is None.
-            self._path = HttpPath([], from_root=True, is_empty=True)
-            return
-
         if isinstance(value, str):
-            from_root = value.startswith("/")
-            if from_root:
-                value = value[1:]
             if value:
-                self._path = HttpPath(value.split("/"), from_root)
+                if value.startswith("/"):
+                    value = value[1:]
+                self._path = HttpPath(value.split("/"))
             else:
-                self._path = HttpPath([], from_root)
+                self._path = HttpPath()
             return
 
         if isinstance(value, HttpPath):
             self._path = value
             return
 
-        raise TypeError(f"Path: Expected str, HttpPath, or None, got {type(value)}")
+        raise TypeError(f"Path: Expected str or HttpPath, got {type(value)}")
 
     @property
     def parameters(self) -> str | None:

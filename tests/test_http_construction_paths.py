@@ -80,32 +80,30 @@ def test_path_property() -> None:
     """Test that reading back the property gives the same value."""
     a = HttpUrl(scheme="http", host="example.com", path="/section1")
     assert str(a.path) == "/section1"
-    assert a.path == HttpPath(components=["section1"], from_root=True)
+    assert a.path == HttpPath(components=["section1"])
 
     a.path = "/Hello/World"
     assert str(a.path) == "/Hello/World"
-    assert a.path == HttpPath(components=["Hello", "World"], from_root=True)
+    assert a.path == HttpPath(components=["Hello", "World"])
 
-    a.path = HttpPath(["World", "Hello"], from_root=True)
+    a.path = HttpPath(["World", "Hello"])
     assert str(a.path) == "/World/Hello"
-    assert a.path == HttpPath(components=["World", "Hello"], from_root=True)
+    assert a.path == HttpPath(components=["World", "Hello"])
 
 
 def test_http_path_equality() -> None:
     """Test that we can compare paths."""
-    assert HttpPath(["a", "b", "c"], from_root=False) == HttpPath(["a", "b", "c"], from_root=False)
-    assert HttpPath(["a", "b", "c"], from_root=False) != HttpPath(["a", "b", "d"], from_root=False)
-    assert HttpPath(["a", "b", "c"], from_root=False) != HttpPath(["a", "b"], from_root=False)
-    assert HttpPath(["a", "b", "c"], from_root=False) != HttpPath(
-        ["a", "b", "c", "d"], from_root=False
-    )
-    assert HttpPath(["a", "b", "c"], from_root=False) != "a/b/c"
-    assert str(HttpPath(["a", "b", "c"], from_root=False)) == "a/b/c"
+    assert HttpPath(["a", "b", "c"]) == HttpPath(["a", "b", "c"])
+    assert HttpPath(["a", "b", "c"]) != HttpPath(["a", "b", "d"])
+    assert HttpPath(["a", "b", "c"]) != HttpPath(["a", "b"])
+    assert HttpPath(["a", "b", "c"]) != HttpPath(["a", "b", "c", "d"])
+    assert HttpPath(["a", "b", "c"]) != "a/b/c"
+    assert str(HttpPath(["a", "b", "c"])) == "/a/b/c"
 
 
 def test_http_path_append_pop() -> None:
     """Test that we can append to paths."""
-    path = HttpPath([], from_root=False)
+    path = HttpPath([])
     path.append("a")
     assert path == HttpPath(["a"])
     path.append("b")
@@ -123,7 +121,7 @@ def test_http_path_append_pop() -> None:
     path.pop_last()
     assert path == HttpPath(["a"])
     path.pop_last()
-    assert path == HttpPath([], from_root=False)
+    assert path == HttpPath([])
 
     with pytest.raises(IndexError):
         path.pop_last()
