@@ -33,10 +33,29 @@ class HttpUrl(URL):
         port: int | str | None = None,
         path: str | HttpPath | None = None,
         parameters: str | None = None,
-        query: dict[str, Any | QueryValue] | str | QuerySet | None = None,
+        query: dict[str, str | bool | int | float | QueryValue] | str | QuerySet | None = None,
         fragment: str | None = None,
         query_options: QueryOptions = QueryOptions(),
     ) -> None:
+        """Create a new URL object.
+
+        :param scheme: The URL scheme. This should be either 'http' or 'https'.
+        :param username: The username for the URL, defaults to None.
+        :param password: The password for the URL, defaults to None.
+        :param host: The URL host.
+        :param port: The URL port, defaults to None.
+        :param path: The URL path, defaults to None. This can be a string, or an
+                     HttpPath object.
+        :param parameters: The URL parameters, defaults to None.
+        :param query: The URL query, defaults to None. This can be a dict, a
+                      string, or a QuerySet object. If it is a dict, the values
+                      can be QueryValue objects, a string, a number or a
+                      boolean.
+        :param fragment: The URL fragment, defaults to None.
+        :param query_options: The query options for the URL, defaults to an
+                              empty QueryOptions object (with defaults).
+        """
+
         super().__init__()
 
         self.scheme = scheme
@@ -54,7 +73,13 @@ class HttpUrl(URL):
     # pylint: enable=too-many-arguments
 
     def __deepcopy__(self, memo: dict) -> "HttpUrl":
-        """Create a copy of the URL object."""
+        """Create a copy of the URL object.
+
+        :param memo: The memo dictionary.
+
+        :return: A copy of the URL object.
+        """
+
         return HttpUrl(
             scheme=self.scheme,
             username=self.username,
@@ -69,11 +94,17 @@ class HttpUrl(URL):
         )
 
     def copy(self) -> "HttpUrl":
-        """Create a copy of the URL object."""
+        """Create a copy of the URL object.
+
+        :return: A copy of the URL object.
+        """
         return copy.deepcopy(self)
 
     def __str__(self) -> str:
-        """Construct the URL string representation."""
+        """Construct the URL string representation.
+
+        :return: The URL string representation.
+        """
 
         output = f"{self._scheme}:"
 
@@ -94,10 +125,19 @@ class HttpUrl(URL):
         return output
 
     def __repr__(self) -> str:
+        """Construct the URL representation.
+
+        :return: The URL representation.
+        """
         return f"{self.__class__.__name__}({self})"
 
     def __eq__(self, other: object) -> bool:
-        """Check if two URL objects are equal."""
+        """Check if two URL objects are equal.
+
+        :param other: The object to compare to.
+
+        :return: True if the objects are equal, False otherwise.
+        """
 
         if not isinstance(other, HttpUrl):
             return False
@@ -134,12 +174,20 @@ class HttpUrl(URL):
 
     @property
     def scheme(self) -> Literal["http", "https"]:
-        """Get the URL scheme."""
+        """Get the URL scheme.
+
+        :return: The URL scheme.
+        """
         return cast(Literal["http", "https"], self._scheme)
 
     @scheme.setter
     def scheme(self, value: Literal["http", "https"]) -> None:
-        """Set the URL scheme."""
+        """Set the URL scheme.
+
+        :param value: The URL scheme.
+
+        :raises ValueError: If the scheme is not 'http' or 'https'.
+        """
         if value not in ("http", "https"):
             raise ValueError(f"Scheme: Expected 'http' or 'https', got {value}")
 
@@ -147,32 +195,56 @@ class HttpUrl(URL):
 
     @property
     def username(self) -> str | None:
-        """Get the URL username."""
+        """Get the URL username.
+
+        :return: The URL username.
+        """
         return self._username
 
     @username.setter
     def username(self, value: str) -> None:
-        """Set the URL username."""
-        self._username = value
+        """Set the URL username.
+
+        :param value: The URL username.
+        """
+        if value is None:
+            self._username = None
+        else:
+            self._username = str(value)
 
     @property
     def password(self) -> str | None:
-        """Get the URL password."""
+        """Get the URL password.
+
+        :return: The URL password.
+        """
         return self._password
 
     @password.setter
     def password(self, value: str) -> None:
-        """Set the URL password."""
-        self._password = value
+        """Set the URL password.
+
+        :param value: The URL password.
+        """
+        if value is None:
+            self._password = None
+        else:
+            self._password = str(value)
 
     @property
     def host(self) -> str | None:
-        """Get the URL host."""
+        """Get the URL host.
+
+        :return: The URL host.
+        """
         return self._host
 
     @host.setter
     def host(self, value: str | None) -> None:
-        """Set the URL host."""
+        """Set the URL host.
+
+        :param value: The URL host.
+        """
         if value and not isinstance(value, str):
             raise TypeError(f"Host: Expected str or None, got {type(value)}")
 
@@ -180,12 +252,20 @@ class HttpUrl(URL):
 
     @property
     def port(self) -> int | str | None:
-        """Get the URL port."""
+        """Get the URL port.
+
+        :return: The URL port as an Int if set, or None otherwise.
+        """
         return self._port
 
     @port.setter
     def port(self, value: int | str | None) -> None:
-        """Set the URL port."""
+        """Set the URL port.
+
+        :param value: The URL port. This should be a number between 0 and 65535.
+
+        :raises ValueError: If the port is not a valid integer.
+        """
         if value is None:
             self._port = None
             return
@@ -202,7 +282,10 @@ class HttpUrl(URL):
 
     @property
     def netloc(self) -> str | None:
-        """Get the netloc as defined by RFC1808."""
+        """Get the netloc as defined by RFC1808.
+
+        :return: The netloc as defined by RFC1808.
+        """
         output = ""
 
         if self.username:
@@ -226,12 +309,18 @@ class HttpUrl(URL):
 
     @property
     def path(self) -> HttpPath:
-        """Get the URL path."""
+        """Get the URL path.
+
+        :return: The URL path as a HttpPath object.
+        """
         return self._path
 
     @path.setter
     def path(self, value: str | HttpPath) -> None:
-        """Set the URL path."""
+        """Set the URL path.
+
+        :param value: The URL path. This can be a string or a HttpPath object.
+        """
         if isinstance(value, str):
             if value:
                 if value.startswith("/"):
@@ -249,22 +338,50 @@ class HttpUrl(URL):
 
     @property
     def parameters(self) -> str | None:
-        """Get the URL parameters."""
+        """Get the URL parameters.
+
+        Note: This is not the same as the query. The parameters are separated by
+        a semicolon, and are not necessarily key-value pairs like the query.
+
+        :return: The URL parameters.
+        """
         return self._parameters
 
     @parameters.setter
     def parameters(self, value: str | None) -> None:
-        """Set the URL parameters."""
-        self._parameters = value
+        """Set the URL parameters.
+
+        Note: This is not the same as the query. The parameters are separated by
+        a semicolon, and are not necessarily key-value pairs like the query.
+
+        :param value: The URL parameters.
+        """
+        if value is None:
+            self._parameters = None
+        else:
+            self._parameters = str(value)
 
     @property
     def query(self) -> QuerySet:
-        """Get the URL query."""
+        """Get the URL query.
+
+        :return: The URL query as a QuerySet object.
+        """
         return self._query
 
     @query.setter
-    def query(self, value: dict[str, QueryValue | Any] | str | QuerySet | None) -> None:
-        """Set the URL query."""
+    def query(
+        self, value: dict[str, QueryValue | str | int | float | bool] | str | QuerySet | None
+    ) -> None:
+        """Set the URL query.
+
+        :param value: The URL query. This can be a dict, a string, or a QuerySet
+                      object. If it is a dict, the values can be QueryValue, a
+                      string, a number or a boolean.
+
+        :raises TypeError: If the query is not a dict, a string, or a QuerySet.
+        """
+
         if (
             value is not None
             and not isinstance(value, dict)
@@ -315,25 +432,45 @@ class HttpUrl(URL):
 
     @property
     def fragment(self) -> str | None:
-        """Get the URL fragment."""
+        """Get the URL fragment.
+
+        :return: The URL fragment.
+        """
         return self._fragment
 
     @fragment.setter
     def fragment(self, value: str | None) -> None:
-        """Set the URL fragment."""
-        if value is not None and not isinstance(value, str):
-            raise TypeError(f"Fragment: Expected str or None, got {type(value)}")
+        """Set the URL fragment.
 
-        self._fragment = value
+        :param value: The URL fragment.
+        """
+
+        if value is None:
+            self._fragment = None
+        else:
+            self._fragment = str(value)
 
     @property
     def query_options(self) -> QueryOptions:
-        """Get the URL query options."""
+        """Get the URL query options.
+
+        Note: This gives the same result as the query.options property.
+
+        :return: The URL query options.
+        """
         return self._query_options
 
     @query_options.setter
     def query_options(self, value: QueryOptions) -> None:
-        """Set the URL query options."""
+        """Set the URL query options.
+
+        Note: This also sets the query.options property.
+
+        :param value: The URL query options.
+
+        :raises TypeError: If the query options are not a QueryOptions object.
+        """
+
         if not isinstance(value, QueryOptions):
             raise TypeError(f"Query options: Expected QueryOptions got {type(value)}")
 
@@ -346,13 +483,25 @@ class HttpUrl(URL):
 
     @classmethod
     def parse(cls, string: str, query_options: QueryOptions = QueryOptions()) -> "HttpUrl":
-        """Parse a URL string into a URL object."""
+        """Parse a URL string into a URL object.
+
+        :param string: The URL string to parse.
+        :param query_options: The query options for the URL, defaults to an
+                              empty QueryOptions object (with defaults).
+
+        :return: The URL object.
+        """
 
         return _parse_http_or_https_url(string, query_options)
 
 
 def _parse_net_loc(net_loc: str) -> tuple[str | None, str | None, str | None, int | None]:
-    """Parse a netloc into its components."""
+    """Parse a netloc into its components.
+
+    :param net_loc: The netloc to parse.
+
+    :return: A tuple containing the username, password, host, and port.
+    """
 
     # Netloc is auth info, host, and port. RFC 1808 doesn't actually decompose
     # this into its components, but it's incredible useful, so we'll do it here.
@@ -408,7 +557,14 @@ def _parse_net_loc(net_loc: str) -> tuple[str | None, str | None, str | None, in
 
 # pylint: disable=too-many-branches
 def _parse_http_or_https_url(value: str, query_options: QueryOptions = QueryOptions()) -> HttpUrl:
-    """Parse a HTTP or HTTPS URL."""
+    """Parse a HTTP or HTTPS URL.
+
+    :param value: The URL string to parse.
+    :param query_options: The query options for the URL, defaults to an
+                          empty QueryOptions object (with defaults).
+
+    :return: The URL object.
+    """
 
     # This comes from https://datatracker.ietf.org/doc/html/rfc1808
     # The rules in the grammar must be applied in order, so we'll do that here.
