@@ -23,7 +23,7 @@ class HttpPath:
         else:
             self.components = components[:]
 
-    def __deepcopy__(self, memo: dict) -> "HttpPath":
+    def __deepcopy__(self, memo: dict[int, Any]) -> "HttpPath":
         """Copy the HttpPath object.
 
         :param memo: The memo dictionary.
@@ -33,7 +33,7 @@ class HttpPath:
 
         return HttpPath(self.components[:])
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Check if two HttpPath objects are equal.
 
         :param other: The object to compare to.

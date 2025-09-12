@@ -316,11 +316,15 @@ class HttpUrl(URL):
         return self._path
 
     @path.setter
-    def path(self, value: str | HttpPath) -> None:
+    def path(self, value: str | HttpPath | None) -> None:
         """Set the URL path.
 
         :param value: The URL path. This can be a string or a HttpPath object.
         """
+        if value is None:
+            self._path = HttpPath()
+            return
+
         if isinstance(value, str):
             if value:
                 if value.startswith("/"):

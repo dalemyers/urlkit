@@ -40,7 +40,7 @@ class QueryOptions:
         self.safe_characters = safe_characters
         self.space_encoding = space_encoding
 
-    def __deepcopy__(self, memo: dict) -> "QueryOptions":
+    def __deepcopy__(self, memo: dict[int, Any]) -> "QueryOptions":
         """Copy the QueryOptions object.
 
         :param memo: The memo dictionary.
@@ -54,7 +54,7 @@ class QueryOptions:
             space_encoding=self.space_encoding,
         )
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Check if two QueryOptions objects are equal.
 
         :param other: The object to compare to.
@@ -180,7 +180,7 @@ class QuerySet(dict[str, QueryValue]):
             for k, v in values.items():
                 self.__setitem_encoded(k, v, not assume_unencoded)
 
-    def __deepcopy__(self, memo: dict) -> "QuerySet":
+    def __deepcopy__(self, memo: dict[int, Any]) -> "QuerySet":
         """Copy the QuerySet object.
 
         :param memo: The memo dictionary.
@@ -220,7 +220,7 @@ class QuerySet(dict[str, QueryValue]):
 
         self.__setitem_encoded(key, value, encoded=False)
 
-    def __getitem__(self, key: str) -> Any:
+    def __getitem__(self, key: str) -> QueryValue | None:
         """Get a query parameter.
 
         :param key: The key of the query parameter.
@@ -312,7 +312,7 @@ class QuerySet(dict[str, QueryValue]):
 
         return self.options.query_joiner.join(encoded_values)
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Check if two QuerySet objects are equal.
 
         :param other: The object to compare to.
@@ -332,7 +332,7 @@ class QuerySet(dict[str, QueryValue]):
 
         return len(self.items()) == len(other.items())
 
-    def __ne__(self, other: Any) -> bool:
+    def __ne__(self, other: object) -> bool:
         """Check if two QuerySet objects are not equal."""
 
         return not self.__eq__(other)
