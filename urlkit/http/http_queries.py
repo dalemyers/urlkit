@@ -105,7 +105,7 @@ class QueryValue:
         self.value = value
         self.encoded = encoded
 
-    def __deepcopy__(self, memo: dict) -> "QueryValue":
+    def __deepcopy__(self, memo: dict[int, Any]) -> "QueryValue":
         """Copy the QueryValue object.
 
         :param memo: The memo dictionary.
@@ -115,7 +115,7 @@ class QueryValue:
 
         return QueryValue(self.value, encoded=self.encoded)
 
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Check if two QueryValue objects are equal.
 
         :param other: The object to compare to.
@@ -153,10 +153,17 @@ class QueryValue:
         return self.__str__()
 
 
-class QuerySet(dict[str, QueryValue]):
-    """A class representing a set of query parameters."""
+class _QueryValueNone(QueryValue):
+    """A class representing a None query value."""
 
-    _NONE_SENTINEL = object()
+    def __init__(self) -> None:
+        """Initialise the _QueryValueNone object."""
+
+        super().__init__(value="", encoded=True)
+
+
+class QuerySet(dict[str, QueryValue | None]):
+    """A class representing a set of query parameters."""
 
     options: QueryOptions
 
@@ -205,7 +212,7 @@ class QuerySet(dict[str, QueryValue]):
         """
 
         if value is None:
-            super().__setitem__(key, QuerySet._NONE_SENTINEL)  # type: ignore
+            super().__setitem__(key, _QueryValueNone())
         elif isinstance(value, QueryValue):
             super().__setitem__(key, value)
         else:
@@ -230,7 +237,9 @@ class QuerySet(dict[str, QueryValue]):
 
         value = super().__getitem__(key)
 
-        if value is QuerySet._NONE_SENTINEL:
+        # We have this as a special case so that we can have a named parameter
+        # added, without it having a value.
+        if isinstance(value, _QueryValueNone):
             return None
 
         return value
@@ -265,7 +274,7 @@ class QuerySet(dict[str, QueryValue]):
         :param key: The key of the query parameter.
         """
 
-        super().__setitem__(key, QuerySet._NONE_SENTINEL)  # type: ignore
+        super().__setitem__(key, _QueryValueNone())  # type: ignore
 
     def __str__(self) -> str:
         """Get the string representation of the query set.
@@ -287,7 +296,7 @@ class QuerySet(dict[str, QueryValue]):
         for key, value in self.items():
             encoded_key = encoding_function(key, safe=self.options.safe_characters)
 
-            if value is None or value is QuerySet._NONE_SENTINEL:
+            if value is None or isinstance(value, _QueryValueNone):
                 encoded_values.append(encoded_key)
                 continue
 
