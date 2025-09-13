@@ -56,6 +56,7 @@ def test_copies() -> None:
 
     i = a.copy()
     i.query["foo"] = "baz"
+    assert a.query["foo"] is not None
     assert a.query["foo"].value == "bar"
 
     j = a.copy()

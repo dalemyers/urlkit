@@ -67,7 +67,7 @@ class HttpUrl(URL):
         self.parameters = parameters
         # Needs to be set before query as we use it in the query setter
         self.query_options = query_options
-        self.query = query  # type: ignore
+        self.query = query
         self.fragment = fragment
 
     # pylint: enable=too-many-arguments
@@ -202,7 +202,7 @@ class HttpUrl(URL):
         return self._username
 
     @username.setter
-    def username(self, value: str) -> None:
+    def username(self, value: str | None) -> None:
         """Set the URL username.
 
         :param value: The URL username.
@@ -221,7 +221,7 @@ class HttpUrl(URL):
         return self._password
 
     @password.setter
-    def password(self, value: str) -> None:
+    def password(self, value: str | None) -> None:
         """Set the URL password.
 
         :param value: The URL password.
