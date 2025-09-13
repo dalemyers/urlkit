@@ -67,7 +67,7 @@ class QueryOptions:
 
         return (
             self.query_joiner == other.query_joiner
-            and self.safe_characters == other.safe_characters
+            and frozenset(self.safe_characters) == frozenset(other.safe_characters) # Order does not matter
             and self.space_encoding == other.space_encoding
         )
 
@@ -80,7 +80,7 @@ class QueryOptions:
         return hash(
             (
                 self.query_joiner,
-                self.safe_characters,
+                frozenset(self.safe_characters), # Order does not matter
                 self.space_encoding,
             )
         )
@@ -335,11 +335,18 @@ class QuerySet(dict[str, QueryValue | None]):
         if self.options != other.options:
             return False
 
-        for (k1, v1), (k2, v2) in zip(self.items(), other.items()):
-            if k1 != k2 or v1 != v2:
+        if len(self.items()) != len(other.items()):
+            return False
+
+        for k1 in self.keys():
+            if k1 not in other:
+                return False
+            self_value = self[k1]
+            other_value = other[k1]
+            if self_value != other_value:
                 return False
 
-        return len(self.items()) == len(other.items())
+        return True
 
     def __ne__(self, other: object) -> bool:
         """Check if two QuerySet objects are not equal."""
