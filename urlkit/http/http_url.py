@@ -17,7 +17,6 @@ class HttpUrl(URL):
     _host: str | None
     _port: int | None
     _path: HttpPath
-    _parameters: str | None
     _query: QuerySet
     _fragment: str | None
     _query_options: QueryOptions
@@ -32,7 +31,6 @@ class HttpUrl(URL):
         host: str | None,  # This is usually set, so we won't give a default.
         port: int | str | None = None,
         path: str | HttpPath | None = None,
-        parameters: str | None = None,
         query: dict[str, str | bool | int | float | QueryValue] | str | QuerySet | None = None,
         fragment: str | None = None,
         query_options: QueryOptions = QueryOptions(),
@@ -46,7 +44,6 @@ class HttpUrl(URL):
         :param port: The URL port, defaults to None.
         :param path: The URL path, defaults to None. This can be a string, or an
                      HttpPath object.
-        :param parameters: The URL parameters, defaults to None.
         :param query: The URL query, defaults to None. This can be a dict, a
                       string, or a QuerySet object. If it is a dict, the values
                       can be QueryValue objects, a string, a number or a
@@ -64,7 +61,6 @@ class HttpUrl(URL):
         self.host = host
         self.port = port
         self.path = path if path else HttpPath()  # type: ignore
-        self.parameters = parameters
         # Needs to be set before query as we use it in the query setter
         self.query_options = query_options
         self.query = query
@@ -87,7 +83,6 @@ class HttpUrl(URL):
             host=self.host,
             port=self.port,
             path=copy.deepcopy(self.path, memo),
-            parameters=self.parameters,
             query=copy.deepcopy(self.query, memo),
             fragment=self.fragment,
             query_options=copy.deepcopy(self.query_options, memo),
@@ -339,31 +334,6 @@ class HttpUrl(URL):
             return
 
         raise TypeError(f"Path: Expected str or HttpPath, got {type(value)}")
-
-    @property
-    def parameters(self) -> str | None:
-        """Get the URL parameters.
-
-        Note: This is not the same as the query. The parameters are separated by
-        a semicolon, and are not necessarily key-value pairs like the query.
-
-        :return: The URL parameters.
-        """
-        return self._parameters
-
-    @parameters.setter
-    def parameters(self, value: str | None) -> None:
-        """Set the URL parameters.
-
-        Note: This is not the same as the query. The parameters are separated by
-        a semicolon, and are not necessarily key-value pairs like the query.
-
-        :param value: The URL parameters.
-        """
-        if value is None:
-            self._parameters = None
-        else:
-            self._parameters = str(value)
 
     @property
     def query(self) -> QuerySet:
@@ -679,27 +649,6 @@ def _parse_http_or_https_url(value: str, query_options: QueryOptions = QueryOpti
         value = value[:query_index]
     else:
         query = None
-
-    # 2.4.5 states:
-    # If the parse string contains a semicolon ";" character, then the
-    # substring after the first (left-most) semicolon ";" and up to the end
-    # of the parse string is the parameters (<params>).  If the semicolon
-    # is the last character, or no semicolon is present, then <params> is
-    # empty.  The matched substring, including the semicolon character, is
-    # removed from the parse string before continuing.
-
-    # So we can do the same as we did with the query before, and split on the
-    # first `;`.
-
-    parameters_index = value.find(";")
-
-    if parameters_index != -1:
-        parameters: str | None = value[parameters_index + 1 :]
-        if parameters and len(parameters) == 0:
-            parameters = None
-        value = value[:parameters_index]
-    else:
-        parameters = None
 
     # 2.4.6 states that everything left (if anything) is the path.
     if value == "":

@@ -22,7 +22,6 @@ def test_copies() -> None:
         path="/some/path",
         query={"foo": "bar"},
         fragment="section1",
-        parameters="a;b",
         query_options=QueryOptions(),
     )
 
@@ -68,9 +67,5 @@ def test_copies() -> None:
     assert a.fragment == "section1"
 
     l = a.copy()
-    l.parameters = "c;d"
-    assert a.parameters == "a;b"
-
-    m = a.copy()
-    m.query_options = QueryOptions(query_joiner="*")
+    l.query_options = QueryOptions(query_joiner="*")
     assert a.query_options == QueryOptions()
