@@ -94,7 +94,7 @@ def test_http_url_query_equivalence_with_different_insertion_order() -> None:
 def test_http_url_path_object_vs_string() -> None:
     """Supplying path as string vs equivalent components should compare equal."""
     a = HttpUrl(scheme="http", host="example.com", path="/alpha/beta")
-    b = HttpUrl(scheme="http", host="example.com", path=HttpPath(["alpha", "beta"]))
+    b = HttpUrl(scheme="http", host="example.com", path=HttpPath("/alpha/beta"))
     assert a == b
 
 

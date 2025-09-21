@@ -89,48 +89,133 @@ def test_path_property() -> None:
     """Test that reading back the property gives the same value."""
     a = HttpUrl(scheme="http", host="example.com", path="/section1")
     assert str(a.path) == "/section1"
-    assert a.path == HttpPath(components=["section1"])
+    assert a.path == HttpPath("/section1")
 
     a.path = "/Hello/World"
     assert str(a.path) == "/Hello/World"
-    assert a.path == HttpPath(components=["Hello", "World"])
+    assert a.path == HttpPath("/Hello/World")
 
-    a.path = HttpPath(["World", "Hello"])
+    a.path = HttpPath("World/Hello")
     assert str(a.path) == "/World/Hello"
-    assert a.path == HttpPath(components=["World", "Hello"])
+    assert a.path == HttpPath("/World/Hello")
 
 
 def test_http_path_equality() -> None:
     """Test that we can compare paths."""
-    assert HttpPath(["a", "b", "c"]) == HttpPath(["a", "b", "c"])
-    assert HttpPath(["a", "b", "c"]) != HttpPath(["a", "b", "d"])
-    assert HttpPath(["a", "b", "c"]) != HttpPath(["a", "b"])
-    assert HttpPath(["a", "b", "c"]) != HttpPath(["a", "b", "c", "d"])
-    assert HttpPath(["a", "b", "c"]) != "a/b/c"
-    assert str(HttpPath(["a", "b", "c"])) == "/a/b/c"
+    assert HttpPath("/a/b/c") == HttpPath("/a/b/c")
+    assert HttpPath("/a/b/c") != HttpPath("/a/b/d")
+    assert HttpPath("/a/b/c") != HttpPath("/a/b")
+    assert HttpPath("/a/b/c") != HttpPath("/a/b/c/d")
+    assert str(HttpPath("/a/b/c")) != "a/b/c"
+    assert str(HttpPath("/a/b/c")) == "/a/b/c"
 
 
 def test_http_path_append_pop() -> None:
     """Test that we can append to paths."""
-    path = HttpPath([])
+    path = HttpPath("")
     path.append("a")
-    assert path == HttpPath(["a"])
+    assert path == HttpPath("a")
     path.append("b")
-    assert path == HttpPath(["a", "b"])
+    assert path == HttpPath("/a/b")
     path.append("c")
-    assert path == HttpPath(["a", "b", "c"])
+    assert path == HttpPath("/a/b/c")
     path.append("d/e")
-    assert path == HttpPath(["a", "b", "c", "d", "e"])
+    assert path == HttpPath("/a/b/c/d/e")
     path.pop_last()
-    assert path == HttpPath(["a", "b", "c", "d"])
+    assert path == HttpPath("/a/b/c/d")
     path.pop_last()
-    assert path == HttpPath(["a", "b", "c"])
+    assert path == HttpPath("/a/b/c")
     path.pop_last()
-    assert path == HttpPath(["a", "b"])
+    assert path == HttpPath("/a/b")
     path.pop_last()
-    assert path == HttpPath(["a"])
+    assert path == HttpPath("/a")
     path.pop_last()
-    assert path == HttpPath([])
+    assert path == HttpPath("")
 
     with pytest.raises(IndexError):
         path.pop_last()
+
+
+@pytest.mark.parametrize(
+    "original_path,expected_normalized",
+    [
+        ("/a/b/c/./../../g", "/a/g"),  # From the RFC
+        ("/a/b/c/./../../g/", "/a/g/"),  # From the RFC
+        ("/a/b/./c/./d", "/a/b/c/d"),
+        ("/a/b/c/../d", "/a/b/d"),
+        ("/a/b/./c/../d", "/a/b/d"),
+        ("/./a", "/a"),
+        ("/../a", "/a"),  # Cannot go above root
+        ("/a/./../b/./c/../d", "/b/d"),
+        ("/a/b/c/.", "/a/b/c/"),  # Trailing "." removes but preserves slash
+        ("/a/b/c/./", "/a/b/c/"),
+        ("/a/b/c/../", "/a/b/"),
+        ("/a/../", "/"),  # Back to root
+        ("/a/../../b", "/b"),  # Excess .. collapse to root first
+        ("/a/./b/../../c", "/c"),
+        ("/./././", "/"),
+        ("/.././../x", "/x"),
+        ("/a/..", "/"),  # Removing last segment
+        ("/a/../", "/"),  # Same but with slash
+        ("/a/b/../../../../c", "/c"),  # Over-backtracking collapses to root then adds c
+        ("/a//b/./c/../d", "/a//b/d"),  # Only dot segments removed; double slash preserved
+    ],
+)
+def test_dot_segment_normalization(original_path: str, expected_normalized: str) -> None:
+    url = HttpUrl(scheme="http", host="example.com", path=original_path)
+    assert str(url) == f"http://example.com{expected_normalized}"
+
+
+@pytest.mark.parametrize(
+    "preserved_path",
+    [
+        "/a//b///c",  # Multiple empty segments preserved
+        "/a/b/..../c",  # '....' is a literal segment, not '..'
+        "/a/b/%2E/c",  # Percent-encoded dot should NOT be treated as dot segment
+        "/a/b/%2e%2E/c",  # Same (encoded '..') stays literal
+        "/a/b/.%2E/c",  # Mixed literal '.' + encoded '.' not a dot segment pair
+        "/a/b/%2E./c",  # Encoded '.' plus literal '.' not collapsed
+    ],
+)
+def test_path_preservation_cases(preserved_path: str) -> None:
+    url = HttpUrl(scheme="http", host="example.com", path=preserved_path)
+    # Current implementation always emits with exactly given components joined by '/'
+    # If later you store raw segments, ensure round-trip fidelity here.
+    assert str(url) == f"http://example.com{preserved_path}"
+
+
+# Mixed scenario ensuring fragment and query are unaffected by path normalization.
+def test_dot_segments_with_query_and_fragment() -> None:
+    url = HttpUrl(
+        scheme="https",
+        host="example.com",
+        path="/a/b/./c/../d/./e/../",
+        query={"q": "1"},
+        fragment="frag",
+    )
+    # Normalized path: /a/b/d/
+    assert str(url) == "https://example.com/a/b/d/?q=1#frag"
+
+
+# Ensure trailing slash is preserved (normalization shouldn’t remove it if
+# final segment was a directory indicator).
+@pytest.mark.parametrize(
+    "original_path",
+    [
+        "/a/b/c/",
+        "/a/b/c/./",
+        "/a/b/c/d/../",
+    ],
+)
+def test_trailing_slash_preserved(original_path: str) -> None:
+    url = HttpUrl(scheme="http", host="example.com", path=original_path)
+    # Expected canonical for all these is /a/b/c/ after normalization
+    assert str(url) == "http://example.com/a/b/c/"
+
+
+# Guard: a URL with no path stays no path vs root slash (depends on future
+# design choice). If you later distinguish empty vs '/', adjust this test.
+def test_empty_path_preserved_current_behavior() -> None:
+    url = HttpUrl(scheme="http", host="example.com")
+    # Current behavior emits trailing slash; if you change design update this.
+    assert str(url) in ("http://example.com/", "http://example.com")

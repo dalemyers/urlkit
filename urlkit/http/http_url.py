@@ -16,7 +16,7 @@ class HttpUrl(URL):
     _password: str | None
     _host: str | None
     _port: int | None
-    _path: HttpPath
+    _path: HttpPath | None
     _query: QuerySet
     _fragment: str | None
     _query_options: QueryOptions
@@ -60,7 +60,7 @@ class HttpUrl(URL):
         self.password = password
         self.host = host
         self.port = port
-        self.path = path if path else HttpPath()  # type: ignore
+        self.path = path
         # Needs to be set before query as we use it in the query setter
         self.query_options = query_options
         self.query = query
@@ -106,10 +106,8 @@ class HttpUrl(URL):
         if netloc := self.netloc:
             output += "//" + netloc
 
-        if self._path and len(self._path.components) > 0:
+        if self._path:
             output += str(self._path)
-        elif self._query:
-            output += "/"
 
         if self._query:
             output += f"?{self._query}"
@@ -323,16 +321,11 @@ class HttpUrl(URL):
         :param value: The URL path. This can be a string or a HttpPath object.
         """
         if value is None:
-            self._path = HttpPath()
+            self._path = None
             return
 
         if isinstance(value, str):
-            if value:
-                if value.startswith("/"):
-                    value = value[1:]
-                self._path = HttpPath(value.split("/"))
-            else:
-                self._path = HttpPath()
+            self._path = HttpPath(value)
             return
 
         if isinstance(value, HttpPath):
