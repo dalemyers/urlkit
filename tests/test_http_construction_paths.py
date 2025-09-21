@@ -17,7 +17,11 @@ from urlkit.http import HttpUrl, HttpPath
 @pytest.mark.parametrize(
     "expected,url_components",
     [
+        ("http://example.com", {"scheme": "http", "host": "example.com"}),
+        ("http://example.com/", {"scheme": "http", "host": "example.com", "path": "/"}),
         ("http://example.com/abc", {"scheme": "http", "host": "example.com", "path": "/abc"}),
+        ("http://example.com/a/b", {"scheme": "http", "host": "example.com", "path": "/a/b"}),
+        ("http://example.com/a/b", {"scheme": "http", "host": "example.com", "path": "a/b"}),
         (
             "http://example.com/some/path",
             {"scheme": "http", "host": "example.com", "path": "/some/path"},
@@ -63,6 +67,11 @@ from urlkit.http import HttpUrl, HttpPath
                 "query": {"normalize": "false"},
             },
         ),
+        (
+            "http://example.com/a;b/c;d",
+            {"scheme": "http", "host": "example.com", "path": "/a;b/c;d"},
+        ),
+        ("http://example.com/a;;b", {"scheme": "http", "host": "example.com", "path": "/a;;b"}),
     ],
 )
 def test_paths(expected: str, url_components: dict) -> None:

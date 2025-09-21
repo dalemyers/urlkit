@@ -19,6 +19,17 @@ from urlkit.http import HttpUrl
     [
         ("http://example.com", {"scheme": "http", "host": "example.com"}),
         ("http://moo", {"scheme": "http", "host": "moo"}),
+        ("http://127.0.0.1", {"scheme": "http", "host": "127.0.0.1"}),
+        ("http://[::1]", {"scheme": "http", "host": "[::1]"}),
+        ("http://[2001:db8::1]", {"scheme": "http", "host": "[2001:db8::1]"}),
+        ("http://example.com", {"scheme": "http", "host": "EXAMPLE.com"}),
+        (
+            "http://example.com",
+            {
+                "scheme": "HTTP",  # Technically a scheme test but we don't have a specific file for that
+                "host": "EXAMPLE.com",
+            },
+        ),
     ],
 )
 def test_hosts(expected: str, url_components: dict) -> None:

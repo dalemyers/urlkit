@@ -114,7 +114,7 @@ class HttpUrl(URL):
         if self._query:
             output += f"?{self._query}"
 
-        if self._fragment:
+        if self._fragment is not None:  # An empty and a missing fragment are different
             output += "#" + self._fragment
 
         return output
@@ -139,6 +139,8 @@ class HttpUrl(URL):
 
         return (
             self._scheme == other.scheme
+            and self._username == other.username
+            and self._password == other.password
             and self._host == other.host
             and self._port == other.port
             and self._path == other.path
@@ -158,6 +160,8 @@ class HttpUrl(URL):
         return hash(
             (
                 self._scheme,
+                self._username,
+                self._password,
                 self._host,
                 self._port,
                 self._path,
@@ -183,6 +187,8 @@ class HttpUrl(URL):
 
         :raises ValueError: If the scheme is not 'http' or 'https'.
         """
+        value = value.lower()
+
         if value not in ("http", "https"):
             raise ValueError(f"Scheme: Expected 'http' or 'https', got {value}")
 
@@ -243,7 +249,7 @@ class HttpUrl(URL):
         if value and not isinstance(value, str):
             raise TypeError(f"Host: Expected str or None, got {type(value)}")
 
-        self._host = value
+        self._host = value.lower() if value else None
 
     @property
     def port(self) -> int | str | None:
