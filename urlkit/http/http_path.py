@@ -23,13 +23,26 @@ class HttpPath:
             self.components = []
             self.trailing_slash = False
         else:
-            path = HttpPath.remove_dot_segments(path)
-            self.trailing_slash = path.endswith("/") and len(path) > 1
-            path = path[1:] if path.startswith("/") else path
-            path = path[:-1] if self.trailing_slash else path
-            self.components = path.split("/")
-            if self.components == [""]:
-                self.components = []
+            self._normalize_with_path(path)
+
+    def _normalize_with_path(self, path: str) -> None:
+        """Normalize a path.
+
+        This is a convenience method that calls the static method
+        `remove_dot_segments`.
+
+        :param path: The path to normalize.
+
+        :return: The normalized path.
+        """
+
+        path = HttpPath.remove_dot_segments(path)
+        self.trailing_slash = path.endswith("/") and len(path) > 1
+        path = path[1:] if path.startswith("/") else path
+        path = path[:-1] if self.trailing_slash else path
+        self.components = path.split("/")
+        if self.components == [""]:
+            self.components = []
 
     @staticmethod
     def remove_dot_segments(path: str) -> str:
@@ -78,7 +91,7 @@ class HttpPath:
                     segments.pop()
                 continue
             if path == "/..":  # 2C
-                path = "/"
+                path = ""
                 if segments:
                     segments.pop()
                 continue
@@ -174,6 +187,8 @@ class HttpPath:
         else:
             self.components.append(subpath)
 
+        self._normalize_with_path(str(self))
+
     def pop_last(self) -> str:
         """Pop the last component from the path.
 
@@ -184,5 +199,7 @@ class HttpPath:
 
         if len(self.components) == 1 and self.components[0] == "":
             self.components = []
+
+        self._normalize_with_path(str(self))
 
         return value
