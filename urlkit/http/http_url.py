@@ -34,7 +34,7 @@ class HttpUrl(URL):
         path: str | HttpPath | None = None,
         query: dict[str, str | bool | int | float | QueryValue] | str | QuerySet | None = None,
         fragment: str | None = None,
-        query_options: QueryOptions = QueryOptions(),
+        query_options: QueryOptions | None = None,
     ) -> None:
         """Create a new URL object.
 
@@ -63,7 +63,7 @@ class HttpUrl(URL):
         self.port = port
         self.path = path
         # Needs to be set before query as we use it in the query setter
-        self.query_options = query_options
+        self.query_options = query_options if query_options else QueryOptions()
         self.query = query
         self.fragment = fragment
 
