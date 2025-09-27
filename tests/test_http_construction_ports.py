@@ -47,3 +47,9 @@ def test_port_property() -> None:
     """Test that reading back the property gives the same value."""
     a = HttpUrl(scheme="http", host="example.com", port=9326)
     assert a.port == 9326
+
+def test_port_invalid_range_negative() -> None:
+    """Test that constructing a URL with a negative port raises a ValueError."""
+    with pytest.raises(ValueError):
+        url_components = {"scheme": "http", "host": "example.com", "port": -1}
+        assert_http_construction_expected_vs_components("", url_components)

@@ -219,3 +219,45 @@ def test_empty_path_preserved_current_behavior() -> None:
     url = HttpUrl(scheme="http", host="example.com")
     # Current behavior emits trailing slash; if you change design update this.
     assert str(url) in ("http://example.com/", "http://example.com")
+
+
+@pytest.mark.parametrize(
+    "original_path, expected_normalized",
+    [
+        # This test case is from RFC 3986, Section 5.4.2. Abnormal Examples
+        ("mid/content=5/../6", "/mid/6"),
+    ],
+)
+def test_dot_segment_normalization_abnormal_examples(original_path: str, expected_normalized: str) -> None:
+    """
+    Test dot-segment normalization for relative paths.
+
+    See RFC 3986, Section 5.4.2. Abnormal Examples.
+    """
+    url = HttpUrl(scheme="http", host="example.com", path=original_path)
+    assert str(url) == f"http://example.com{expected_normalized}"
+
+def test_empty_string_path_is_not_root() -> None:
+    """Test that an empty string for a path is not the same as the root path."""
+    # See RFC 3986, Section 3.3. Path
+    # If a URI contains an authority component, then the path component
+    # must either be empty or begin with a slash ("/") character.
+    # This implies that an empty path is distinct from a path of "/".
+    url_empty = HttpUrl(scheme="http", host="example.com", path="")
+    assert str(url_empty) == "http://example.com"
+
+    url_root = HttpUrl(scheme="http", host="example.com", path="/")
+    assert str(url_root) == "http://example.com/"
+
+def test_http_path_append_with_dot_segments() -> None:
+    """Test that appending paths with dot segments normalizes the path."""
+    path = HttpPath("/a/b/c")
+    path.append("..")
+    assert str(path) == "/a/b"
+
+    path.append("../d")
+    assert str(path) == "/a/d"
+
+    path2 = HttpPath("")
+    path2.append("a/b/../c")
+    assert str(path2) == "/a/c"

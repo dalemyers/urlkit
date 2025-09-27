@@ -241,3 +241,73 @@ def test_invalid_scheme() -> None:
 
     with pytest.raises(ValueError):
         _parse_http_or_https_url("hodor://example.com")
+
+def test_ipv6_host_no_port() -> None:
+    """
+    Test parsing of an IPv6 host without a port.
+
+    This is to ensure compliance with RFC 3986, Section 3.2.2, where an
+    IPv6 literal address is enclosed in square brackets.
+    """
+    url = "http://[::1]/"
+    url_components = {
+        "scheme": "http",
+        "host": "[::1]",
+        "path": "/",
+    }
+    assert_http_parse_expected_vs_url(url, url_components)
+
+def test_case_insensitive_scheme() -> None:
+    """
+    Test that the scheme is parsed case-insensitively.
+
+    See RFC 3986, Section 3.1.
+    """
+    url = "HTTP://example.com/"
+    url_components = {
+        "scheme": "http",
+        "host": "example.com",
+        "path": "/",
+    }
+    assert_http_parse_expected_vs_url(url, url_components)
+
+    url = "HTTPS://example.com/"
+    url_components = {
+        "scheme": "https",
+        "host": "example.com",
+        "path": "/",
+    }
+    assert_http_parse_expected_vs_url(url, url_components)
+
+def test_ipv6_host_with_port() -> None:
+    """
+    Test parsing of an IPv6 host with a port.
+
+    This is to ensure compliance with RFC 3986, Section 3.2.2.
+    """
+    url = "http://[2001:db8::1]:8080/"
+    url_components = {
+        "scheme": "http",
+        "host": "[2001:db8::1]",
+        "port": 8080,
+        "path": "/",
+    }
+    assert_http_parse_expected_vs_url(url, url_components)
+
+
+def test_ipv6_host_no_port_complex() -> None:
+    """
+    Test parsing of a complex IPv6 host without a port.
+    """
+    url = "http://[2001:db8:85a3:8d3:1319:8a2e:370:7348]/"
+    url_components = {
+        "scheme": "http",
+        "host": "[2001:db8:85a3:8d3:1319:8a2e:370:7348]",
+        "path": "/",
+    }
+    assert_http_parse_expected_vs_url(url, url_components)
+
+def test_parse_invalid_port() -> None:
+    """Test that parsing a URL with a non-numeric port raises a ValueError."""
+    with pytest.raises(ValueError):
+        HttpUrl.parse("http://example.com:badport")

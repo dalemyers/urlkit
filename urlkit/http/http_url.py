@@ -320,7 +320,7 @@ class HttpUrl(URL):
 
         :param value: The URL path. This can be a string or a HttpPath object.
         """
-        if value is None:
+        if not value:
             self._path = None
             return
 
@@ -513,6 +513,28 @@ def _parse_net_loc(net_loc: str) -> tuple[str | None, str | None, str | None, in
     # _last_ colon if it is specified. We can't use any other as IPv6 addresses
     # can contain colons.
 
+    if host_and_port.startswith("["):
+        # This is an IPv6 address, so we need to find the closing `]` first.
+        closing_bracket_index = host_and_port.find("]")
+
+        if closing_bracket_index == -1:
+            raise ValueError("Netloc: Invalid IPv6 address, missing closing ']'")
+
+        host = host_and_port[: closing_bracket_index + 1]
+        port_string = host_and_port[closing_bracket_index + 1 :]
+
+        if port_string.startswith(":"):
+            port_string = port_string[1:]
+            if len(port_string) == 0:
+                port = None
+            else:
+                port = int(port_string)
+        elif len(port_string) == 0:
+            port = None
+        else:
+            raise ValueError("Netloc: Invalid IPv6 address, unexpected characters after ']'")
+        return username, password, host, port
+
     if ":" in host_and_port:
         port_index = host_and_port.rfind(":")
         port_string = host_and_port[port_index + 1 :]
@@ -581,6 +603,8 @@ def _parse_http_or_https_url(value: str, query_options: QueryOptions = QueryOpti
 
     # We are specifically looking for `http:` or `https:` as the scheme, so can
     # just check for that.
+
+    value = value.lower()
 
     if value.startswith("http:"):
         scheme = "http"

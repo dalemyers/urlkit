@@ -465,3 +465,10 @@ def test_query_set_equality() -> None:
         QueryOptions(), {"foo": "bar"}, assume_unencoded=False
     )
     assert QuerySet(QueryOptions(), {"foo": "bar"}) != object()
+
+def test_decode_query_value_invalid_space_encoding() -> None:
+    """Test that parsing a query string with invalid space encoding fails."""
+    url = HttpUrl(scheme="http", host="example.com")
+    url.query_options.space_encoding = "INVALID"  # type: ignore
+    with pytest.raises(ValueError):
+        url.query = "a=b"
