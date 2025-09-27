@@ -2,6 +2,7 @@
 
 import copy
 from typing import Any, cast, Literal
+import urllib
 
 from ..url import URL
 from .http_queries import QueryOptions, decode_query_value, QueryValue, QuerySet
@@ -288,10 +289,11 @@ class HttpUrl(URL):
         output = ""
 
         if self.username:
-            output += self.username
+            # Append the URL encoded username
+            output += urllib.parse.quote(self.username, safe="")
 
             if self.password:
-                output += f":{self.password}"
+                output += f":{urllib.parse.quote(self.password, safe='')}"
 
             output += "@"
 
@@ -546,6 +548,9 @@ def _parse_net_loc(net_loc: str) -> tuple[str | None, str | None, str | None, in
     else:
         host = host_and_port
         port = None
+
+    username = urllib.parse.unquote(username) if username else None
+    password = urllib.parse.unquote(password) if password else None
 
     return username, password, host, port
 
