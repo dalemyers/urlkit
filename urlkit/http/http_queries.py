@@ -1,6 +1,7 @@
 """URL utility library."""
 
 import copy
+from dataclasses import dataclass
 import enum
 from typing import Any
 import urllib.parse
@@ -13,46 +14,18 @@ class SpaceEncoding(enum.Enum):
     PERCENT = "%20"
 
 
+@dataclass(slots=True)
 class QueryOptions:
-    """A class representing the various query parameter options."""
+    """A class representing the various query parameter options.
 
-    query_joiner: str
-    safe_characters: str
-    space_encoding: SpaceEncoding
+    :param query_joiner: The character used to join query parameters, defaults to "&".
+    :param safe_characters: The characters that do not need to be encoded, defaults to "".
+    :param space_encoding: The method used to encode spaces, defaults to SpaceEncoding.PERCENT.
+    """
 
-    def __init__(
-        self,
-        query_joiner: str = "&",
-        safe_characters: str = "",
-        space_encoding: SpaceEncoding = SpaceEncoding.PERCENT,
-    ) -> None:
-        """Initialise the QueryOptions object.
-
-        :param query_joiner: The character used to join query parameters,
-                             defaults to "&".
-        :param safe_characters: The characters that do not need to be encoded,
-                                defaults to "".
-        :param space_encoding: The method used to encode spaces, defaults to
-                               SpaceEncoding.PERCENT.
-        """
-
-        self.query_joiner = query_joiner
-        self.safe_characters = safe_characters
-        self.space_encoding = space_encoding
-
-    def __deepcopy__(self, memo: dict[int, Any]) -> "QueryOptions":
-        """Copy the QueryOptions object.
-
-        :param memo: The memo dictionary.
-
-        :return: A copy of the QueryOptions object.
-        """
-
-        return QueryOptions(
-            query_joiner=self.query_joiner,
-            safe_characters=self.safe_characters,
-            space_encoding=self.space_encoding,
-        )
+    query_joiner: str = "&"
+    safe_characters: str = ""
+    space_encoding: SpaceEncoding = SpaceEncoding.PERCENT
 
     def __eq__(self, other: object) -> bool:
         """Check if two QueryOptions objects are equal.
@@ -67,7 +40,8 @@ class QueryOptions:
 
         return (
             self.query_joiner == other.query_joiner
-            and frozenset(self.safe_characters) == frozenset(other.safe_characters) # Order does not matter
+            and frozenset(self.safe_characters)
+            == frozenset(other.safe_characters)  # Order does not matter
             and self.space_encoding == other.space_encoding
         )
 
@@ -80,40 +54,29 @@ class QueryOptions:
         return hash(
             (
                 self.query_joiner,
-                frozenset(self.safe_characters), # Order does not matter
+                frozenset(self.safe_characters),  # Order does not matter
                 self.space_encoding,
             )
         )
 
 
+@dataclass(slots=True)
 class QueryValue:
-    """Represents a query value."""
+    """Represents a query value.
+
+    :param value: The value of the query parameter.
+    :param encoded: A flag stating whether or not the query parameter is already encoded.
+    """
 
     value: str | bool | int | float
-    encoded: bool
+    encoded: bool = False
 
-    def __init__(self, value: str | bool | int | float, encoded: bool = False) -> None:
-        """Initialise the QueryValue object.
-
-        :param value: The value of the query parameter.
-        :param encoded: A flag stating whether or not the query parameter is already encoded.
-        """
-
-        if not isinstance(value, (str, bool, int, float)):
-            raise ValueError(f"Query: Expected str, bool, int, or float, got {type(value)}")
-
-        self.value = value
-        self.encoded = encoded
-
-    def __deepcopy__(self, memo: dict[int, Any]) -> "QueryValue":
-        """Copy the QueryValue object.
-
-        :param memo: The memo dictionary.
-
-        :return: A copy of the QueryValue object.
-        """
-
-        return QueryValue(self.value, encoded=self.encoded)
+    def __post_init__(self) -> None:
+        """Validate the QueryValue after initialization."""
+        if not isinstance(self.value, (str, bool, int, float)):
+            raise ValueError(
+                f"Query: Expected str, bool, int, or float, got {type(self.value)}"
+            )
 
     def __eq__(self, other: object) -> bool:
         """Check if two QueryValue objects are equal.
@@ -300,14 +263,18 @@ class QuerySet(dict[str, QueryValue | None]):
                 encoded_values.append(encoded_key)
                 continue
 
-            assert isinstance(value, QueryValue), f"Query: Expected QueryValue, got {type(value)}"
+            assert isinstance(
+                value, QueryValue
+            ), f"Query: Expected QueryValue, got {type(value)}"
 
             if value.encoded:
                 encoded_values.append(f"{encoded_key}={value.value}")
                 continue
 
             if isinstance(value.value, str):
-                encoded_value = encoding_function(value.value, safe=self.options.safe_characters)
+                encoded_value = encoding_function(
+                    value.value, safe=self.options.safe_characters
+                )
             elif isinstance(value.value, bool):  # Must be above int
                 encoded_value = "true" if value.value else "false"
             elif isinstance(value.value, int):
@@ -315,7 +282,9 @@ class QuerySet(dict[str, QueryValue | None]):
             elif isinstance(value.value, float):
                 encoded_value = str(value.value)
             else:
-                raise ValueError(f"Query: Expected str, bool, or int, got {type(value.value)}")
+                raise ValueError(
+                    f"Query: Expected str, bool, or int, got {type(value.value)}"
+                )
 
             encoded_values.append(f"{encoded_key}={encoded_value}")
 
@@ -369,4 +338,6 @@ def decode_query_value(value: str, options: QueryOptions) -> str:
     if options.space_encoding == SpaceEncoding.PLUS:
         return urllib.parse.unquote_plus(value)
 
-    raise ValueError(f"Space Encoding: Expected valid SpaceEncoding, got {options.space_encoding}")
+    raise ValueError(
+        f"Space Encoding: Expected valid SpaceEncoding, got {options.space_encoding}"
+    )

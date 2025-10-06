@@ -1,33 +1,20 @@
 """HTTP Path utilities."""
 
+from dataclasses import dataclass
 from typing import Any
 import urllib.parse
 
 
+@dataclass(slots=True)
 class HttpPathComponent:
-    """A class representing a single component of a HTTP(S) URL path."""
+    """A class representing a single component of a HTTP(S) URL path.
+
+    :param value: The value of the path component.
+    :param encoded: Whether the value is already percent-encoded.
+    """
 
     value: str
     encoded: bool
-
-    def __init__(self, value: str, encoded: bool) -> None:
-        """Initialise the HttpPathComponent object.
-
-        :param value: The value of the path component.
-        :param encoded: Whether the value is already percent-encoded.
-        """
-        self.value = value
-        self.encoded = encoded
-
-    def __deepcopy__(self, memo: dict[int, Any]) -> "HttpPathComponent":
-        """Copy the HttpPathComponent object.
-
-        :param memo: The memo dictionary.
-
-        :return: A copy of the HttpPathComponent object.
-        """
-
-        return HttpPathComponent(self.value, self.encoded)
 
     def __eq__(self, other: object) -> bool:
         """Check if two HttpPathComponent objects are equal.
