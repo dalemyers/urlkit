@@ -1,7 +1,8 @@
 """HTTP Path utilities."""
 
+import copy
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Union
 import urllib.parse
 
 
@@ -252,6 +253,40 @@ class HttpPath:
             path += "/"
 
         return path
+
+    def __truediv__(self, other: Union[str, "HttpPath"]) -> "HttpPath":
+        """Support path / 'segment' syntax like pathlib.Path.
+
+        This creates a new HttpPath with the additional segment(s) appended.
+        The original path is not modified.
+
+        :param other: The path segment(s) to append. Can be a string or another HttpPath.
+
+        :return: A new HttpPath with the segment(s) appended.
+
+        Example:
+            >>> path = HttpPath("/api")
+            >>> new_path = path / "v1" / "users"
+            >>> str(new_path)
+            '/api/v1/users'
+        """
+        new_path = copy.deepcopy(self)
+
+        if isinstance(other, str):
+            new_path.append(other)
+        elif isinstance(other, HttpPath):
+            # Append all components from the other path
+            for component in other._components:
+                new_path._components.append(copy.deepcopy(component))
+            # Preserve trailing slash from the other path
+            new_path.trailing_slash = other.trailing_slash
+            new_path._normalize_with_path(str(new_path))
+        else:
+            raise TypeError(
+                f"unsupported operand type(s) for /: 'HttpPath' and '{type(other).__name__}'"
+            )
+
+        return new_path
 
     def append(self, subpath: str | list[str]) -> None:
         """Append a component to the path.
