@@ -34,7 +34,7 @@ new_url = urlunparse((
 Now with `urlkit`:
 
 ```python
-from urlkit.http_url import HttpUrl
+from urlkit.http import HttpUrl
 
 url_string = "http://example.com?foo=bar&baz=qux"
 # Parse the URL
