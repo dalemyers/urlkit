@@ -10,7 +10,12 @@ from utilities import assert_http_construction_expected_vs_components
     [
         (
             "http://hodor:stark@example.com",
-            {"scheme": "http", "host": "example.com", "username": "hodor", "password": "stark"},
+            {
+                "scheme": "http",
+                "host": "example.com",
+                "username": "hodor",
+                "password": "stark",
+            },
         ),
         (
             "http://hodor:stark@moo",

@@ -74,9 +74,7 @@ class QueryValue:
     def __post_init__(self) -> None:
         """Validate the QueryValue after initialization."""
         if not isinstance(self.value, (str, bool, int, float)):
-            raise ValueError(
-                f"Query: Expected str, bool, int, or float, got {type(self.value)}"
-            )
+            raise ValueError(f"Query: Expected str, bool, int, or float, got {type(self.value)}")
 
     def __eq__(self, other: object) -> bool:
         """Check if two QueryValue objects are equal.
@@ -263,18 +261,14 @@ class QuerySet(dict[str, QueryValue | None]):
                 encoded_values.append(encoded_key)
                 continue
 
-            assert isinstance(
-                value, QueryValue
-            ), f"Query: Expected QueryValue, got {type(value)}"
+            assert isinstance(value, QueryValue), f"Query: Expected QueryValue, got {type(value)}"
 
             if value.encoded:
                 encoded_values.append(f"{encoded_key}={value.value}")
                 continue
 
             if isinstance(value.value, str):
-                encoded_value = encoding_function(
-                    value.value, safe=self.options.safe_characters
-                )
+                encoded_value = encoding_function(value.value, safe=self.options.safe_characters)
             elif isinstance(value.value, bool):  # Must be above int
                 encoded_value = "true" if value.value else "false"
             elif isinstance(value.value, int):
@@ -282,9 +276,7 @@ class QuerySet(dict[str, QueryValue | None]):
             elif isinstance(value.value, float):
                 encoded_value = str(value.value)
             else:
-                raise ValueError(
-                    f"Query: Expected str, bool, or int, got {type(value.value)}"
-                )
+                raise ValueError(f"Query: Expected str, bool, or int, got {type(value.value)}")
 
             encoded_values.append(f"{encoded_key}={encoded_value}")
 
@@ -338,6 +330,4 @@ def decode_query_value(value: str, options: QueryOptions) -> str:
     if options.space_encoding == SpaceEncoding.PLUS:
         return urllib.parse.unquote_plus(value)
 
-    raise ValueError(
-        f"Space Encoding: Expected valid SpaceEncoding, got {options.space_encoding}"
-    )
+    raise ValueError(f"Space Encoding: Expected valid SpaceEncoding, got {options.space_encoding}")

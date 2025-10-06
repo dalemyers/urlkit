@@ -242,6 +242,7 @@ def test_invalid_scheme() -> None:
     with pytest.raises(ValueError):
         _parse_http_or_https_url("hodor://example.com")
 
+
 def test_ipv6_host_no_port() -> None:
     """
     Test parsing of an IPv6 host without a port.
@@ -256,6 +257,7 @@ def test_ipv6_host_no_port() -> None:
         "path": "/",
     }
     assert_http_parse_expected_vs_url(url, url_components)
+
 
 def test_case_insensitive_scheme() -> None:
     """
@@ -278,6 +280,7 @@ def test_case_insensitive_scheme() -> None:
         "path": "/",
     }
     assert_http_parse_expected_vs_url(url, url_components)
+
 
 def test_ipv6_host_with_port() -> None:
     """
@@ -306,6 +309,7 @@ def test_ipv6_host_no_port_complex() -> None:
         "path": "/",
     }
     assert_http_parse_expected_vs_url(url, url_components)
+
 
 def test_parse_invalid_port() -> None:
     """Test that parsing a URL with a non-numeric port raises a ValueError."""

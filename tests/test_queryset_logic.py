@@ -9,6 +9,7 @@ from urlkit.http import QuerySet, QueryOptions
 
 # pylint: enable=wrong-import-position
 
+
 def test_queryset_equality_order_independent():
     """Test that QuerySet equality is order-independent."""
     q1 = QuerySet(QueryOptions(), {"a": "1", "b": "2"})

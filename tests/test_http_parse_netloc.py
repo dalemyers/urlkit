@@ -19,7 +19,10 @@ from urlkit.http.http_url import _parse_http_or_https_url
         ("http://example.com/some/path", "example.com"),
         ("http://example.com:8080/home", "example.com:8080"),
         ("http://username@example.com/", "username@example.com"),
-        ("http://username:password@example.com:1234", "username:password@example.com:1234"),
+        (
+            "http://username:password@example.com:1234",
+            "username:password@example.com:1234",
+        ),
     ],
 )
 def test_netloc(url: str, expected: str) -> None:

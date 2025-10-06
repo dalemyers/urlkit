@@ -386,9 +386,7 @@ def test_query_options_property() -> None:
         ),
     ],
 )
-def test_query_options_equality(
-    a: QueryOptions, b: QueryOptions, expected: bool
-) -> None:
+def test_query_options_equality(a: QueryOptions, b: QueryOptions, expected: bool) -> None:
     """Test that reading back the property gives the same value."""
     assert (a == b) is expected
 
@@ -404,9 +402,7 @@ def test_query_options_after() -> None:
     """Test that setting the query options after construction still sets it on the query set."""
     q1 = QueryOptions(query_joiner="|")
     q2 = QueryOptions(query_joiner="&")
-    url = HttpUrl(
-        scheme="http", host="example.com", query={"foo": "bar"}, query_options=q1
-    )
+    url = HttpUrl(scheme="http", host="example.com", query={"foo": "bar"}, query_options=q1)
     assert url.query_options == url.query.options
     assert url.query.options == q1
     url.query_options = q2
@@ -433,9 +429,7 @@ def test_query_values_str_repr() -> None:
     assert str(QueryValue("foo", encoded=True)) == "<QueryValue value=foo encoded=True>"
     assert str(QueryValue(42)) == "<QueryValue value=42 encoded=False>"
     assert repr(QueryValue("foo")) == "<QueryValue value=foo encoded=False>"
-    assert (
-        repr(QueryValue("foo", encoded=True)) == "<QueryValue value=foo encoded=True>"
-    )
+    assert repr(QueryValue("foo", encoded=True)) == "<QueryValue value=foo encoded=True>"
     assert repr(QueryValue(42)) == "<QueryValue value=42 encoded=False>"
 
 
@@ -482,18 +476,12 @@ def test_query_set_str_encoding_type_checks() -> None:
 def test_query_set_equality() -> None:
     """Test the equality operator for query sets."""
 
-    assert QuerySet(QueryOptions(), {"foo": "bar"}) == QuerySet(
-        QueryOptions(), {"foo": "bar"}
-    )
+    assert QuerySet(QueryOptions(), {"foo": "bar"}) == QuerySet(QueryOptions(), {"foo": "bar"})
     assert QuerySet(QueryOptions(), {"foo": "bar"}) != QuerySet(
         QueryOptions(query_joiner="|"), {"foo": "bar"}
     )
-    assert QuerySet(QueryOptions(), {"foo": "bar"}) != QuerySet(
-        QueryOptions(), {"foo": "baz"}
-    )
-    assert QuerySet(QueryOptions(), {"foo": "bar"}) != QuerySet(
-        QueryOptions(), {"baz": "bar"}
-    )
+    assert QuerySet(QueryOptions(), {"foo": "bar"}) != QuerySet(QueryOptions(), {"foo": "baz"})
+    assert QuerySet(QueryOptions(), {"foo": "bar"}) != QuerySet(QueryOptions(), {"baz": "bar"})
     assert QuerySet(QueryOptions(), {"foo": "bar"}) != QuerySet(
         QueryOptions(), {"foo": "bar", "baz": "qux"}
     )

@@ -203,9 +203,7 @@ def test_http_path_append_pop() -> None:
         ),  # Only dot segments removed; double slash preserved
     ],
 )
-def test_dot_segment_normalization(
-    original_path: str, expected_normalized: str
-) -> None:
+def test_dot_segment_normalization(original_path: str, expected_normalized: str) -> None:
     url = HttpUrl(scheme="http", host="example.com", path=original_path)
     assert str(url) == f"http://example.com{expected_normalized}"
 

@@ -17,10 +17,19 @@ from urlkit.http import HttpUrl
 @pytest.mark.parametrize(
     "expected,url_components",
     [
-        ("http://example.com:8080", {"scheme": "http", "host": "example.com", "port": 8080}),
+        (
+            "http://example.com:8080",
+            {"scheme": "http", "host": "example.com", "port": 8080},
+        ),
         ("http://moo:999", {"scheme": "http", "host": "moo", "port": 999}),
-        ("http://example.com:443", {"scheme": "http", "host": "example.com", "port": 443}),
-        ("http://example.com:443", {"scheme": "http", "host": "example.com", "port": "443"}),
+        (
+            "http://example.com:443",
+            {"scheme": "http", "host": "example.com", "port": 443},
+        ),
+        (
+            "http://example.com:443",
+            {"scheme": "http", "host": "example.com", "port": "443"},
+        ),
         ("http://example.com", {"scheme": "http", "host": "example.com", "port": None}),
     ],
 )
@@ -47,6 +56,7 @@ def test_port_property() -> None:
     """Test that reading back the property gives the same value."""
     a = HttpUrl(scheme="http", host="example.com", port=9326)
     assert a.port == 9326
+
 
 def test_port_invalid_range_negative() -> None:
     """Test that constructing a URL with a negative port raises a ValueError."""

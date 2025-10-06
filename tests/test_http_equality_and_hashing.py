@@ -13,8 +13,20 @@ from urlkit.http import HttpUrl, QueryOptions, QuerySet, HttpPath
 
 def test_http_url_basic_equality() -> None:
     """Identical component sets compare equal."""
-    a = HttpUrl(scheme="http", host="example.com", path="/foo", query={"a": "1"}, fragment="frag")
-    b = HttpUrl(scheme="http", host="example.com", path="/foo", query={"a": "1"}, fragment="frag")
+    a = HttpUrl(
+        scheme="http",
+        host="example.com",
+        path="/foo",
+        query={"a": "1"},
+        fragment="frag",
+    )
+    b = HttpUrl(
+        scheme="http",
+        host="example.com",
+        path="/foo",
+        query={"a": "1"},
+        fragment="frag",
+    )
     assert a == b
     assert hash(a) == hash(b)
 
