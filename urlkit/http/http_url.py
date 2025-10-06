@@ -524,24 +524,13 @@ class HttpUrl(URL):
         return _parse_http_or_https_url(string, query_options)
 
 
-# pylint: disable=too-many-branches
-def _parse_net_loc(
-    net_loc: str,
-) -> tuple[str | None, str | None, str | None, int | None]:
-    """Parse a netloc into its components.
+def _split_userinfo_from_netloc(net_loc: str) -> tuple[str | None, str]:
+    """Split userinfo from the host and port part of a netloc.
 
-    :param net_loc: The netloc to parse.
+    :param net_loc: The netloc string.
 
-    :return: A tuple containing the username, password, host, and port.
+    :return: Tuple of (userinfo, host_and_port).
     """
-
-    # Netloc is auth info, host, and port. RFC 1808 doesn't actually decompose
-    # this into its components, but it's incredible useful, so we'll do it here.
-
-    # According to the BNF grammar, there are can be no `@` characters in the
-    # netloc. However, RFC 3986 section 3.2.1 specifies that a `@` separates the
-    # user info from the host. So we'll use that.
-
     userinfo_index = net_loc.find("@")
 
     if userinfo_index != -1:
@@ -551,68 +540,112 @@ def _parse_net_loc(
         userinfo = None
         host_and_port = net_loc
 
-    # If we have a userinfo, we still need to split into username and password (if
-    # there is a password). RFC 3986 section 3.2.1 specifies that the _first_
-    # `:` seen separates the username from the password
-    if userinfo:
-        password_index = userinfo.find(":")
+    return userinfo, host_and_port
 
-        if password_index != -1:
-            password = userinfo[password_index + 1 :]
-            username = userinfo[:password_index]
-        else:
-            username = userinfo
-            password = None
+
+def _parse_userinfo(userinfo: str | None) -> tuple[str | None, str | None]:
+    """Parse userinfo into username and password.
+
+    RFC 3986 section 3.2.1 specifies that the first `:` separates username from password.
+
+    :param userinfo: The userinfo string, or None.
+
+    :return: Tuple of (username, password).
+    """
+    if not userinfo:
+        return None, None
+
+    password_index = userinfo.find(":")
+
+    if password_index != -1:
+        password = userinfo[password_index + 1 :]
+        username = userinfo[:password_index]
     else:
-        username = None
+        username = userinfo
         password = None
 
-    # Now we need to get the port from the host_and_port if it is defined. RFC
-    # 3986 section 3.2 gives a grammar that shows that the port comes after the
-    # _last_ colon if it is specified. We can't use any other as IPv6 addresses
-    # can contain colons.
+    return username, password
 
+
+def _parse_ipv6_host_and_port(host_and_port: str) -> tuple[str, int | None]:
+    """Parse IPv6 host and optional port.
+
+    :param host_and_port: String starting with '[' containing IPv6 address.
+
+    :return: Tuple of (host, port).
+
+    :raises ValueError: If IPv6 address is malformed.
+    """
+    closing_bracket_index = host_and_port.find("]")
+
+    if closing_bracket_index == -1:
+        raise ValueError("Netloc: Invalid IPv6 address, missing closing ']'")
+
+    host = host_and_port[: closing_bracket_index + 1]
+    port_string = host_and_port[closing_bracket_index + 1 :]
+
+    if port_string.startswith(":"):
+        port_string = port_string.removeprefix(":")
+        port = int(port_string) if port_string else None
+    elif len(port_string) == 0:
+        port = None
+    else:
+        raise ValueError("Netloc: Invalid IPv6 address, unexpected characters after ']'")
+
+    return host, port
+
+
+def _parse_host_and_port(host_and_port: str) -> tuple[str | None, int | None]:
+    """Parse host and optional port from a netloc component.
+
+    Handles both IPv4/hostname and IPv6 addresses.
+
+    :param host_and_port: The host and port string.
+
+    :return: Tuple of (host, port).
+
+    :raises ValueError: If IPv6 address is malformed.
+    """
     if host_and_port.startswith("["):
-        # This is an IPv6 address, so we need to find the closing `]` first.
-        closing_bracket_index = host_and_port.find("]")
-
-        if closing_bracket_index == -1:
-            raise ValueError("Netloc: Invalid IPv6 address, missing closing ']'")
-
-        host = host_and_port[: closing_bracket_index + 1]
-        port_string = host_and_port[closing_bracket_index + 1 :]
-
-        if port_string.startswith(":"):
-            port_string = port_string.removeprefix(":")
-            if len(port_string) == 0:
-                port = None
-            else:
-                port = int(port_string)
-        elif len(port_string) == 0:
-            port = None
-        else:
-            raise ValueError("Netloc: Invalid IPv6 address, unexpected characters after ']'")
-        return username, password, host, port
+        return _parse_ipv6_host_and_port(host_and_port)
 
     if ":" in host_and_port:
         port_index = host_and_port.rfind(":")
         port_string = host_and_port[port_index + 1 :]
-        if len(port_string) == 0:
-            port = None
-        else:
-            port = int(port_string)
+        port = int(port_string) if port_string else None
         host = host_and_port[:port_index]
     else:
         host = host_and_port
         port = None
 
+    return host, port
+
+
+def _parse_net_loc(
+    net_loc: str,
+) -> tuple[str | None, str | None, str | None, int | None]:
+    """Parse a netloc into its components.
+
+    :param net_loc: The netloc to parse.
+
+    :return: A tuple containing the username, password, host, and port.
+    """
+    # Netloc is auth info, host, and port. RFC 1808 doesn't actually decompose
+    # this into its components, but it's incredible useful, so we'll do it here.
+
+    # According to the BNF grammar, there are can be no `@` characters in the
+    # netloc. However, RFC 3986 section 3.2.1 specifies that a `@` separates the
+    # user info from the host. So we'll use that.
+
+    userinfo, host_and_port = _split_userinfo_from_netloc(net_loc)
+    username, password = _parse_userinfo(userinfo)
+    host, port = _parse_host_and_port(host_and_port)
+
+    # Decode URL-encoded username and password
     username = urllib.parse.unquote(username) if username else None
     password = urllib.parse.unquote(password) if password else None
 
     return username, password, host, port
-
-
-# pylint: enable=too-many-branches
 
 
 # pylint: disable=too-many-branches

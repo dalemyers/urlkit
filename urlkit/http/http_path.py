@@ -124,6 +124,55 @@ class HttpPath:
 
     # pylint: disable=too-many-branches
     @staticmethod
+    def _process_dot_segment_pattern(path: str, segments: list[str]) -> str | None:
+        """Process a single dot-segment pattern from the path.
+
+        Implements cases 2B and 2C from RFC 3986 section 5.2.4.
+
+        :param path: The current path being processed.
+        :param segments: The list of accumulated segments.
+
+        :return: The modified path if a pattern was matched, None otherwise.
+        """
+        # 2B: Remove "./" prefix or replace "/." with "/"
+        if path.startswith("/./"):
+            return path[2:]
+        if path == "/.":
+            return "/"
+
+        # 2C: Remove "/../" prefix and pop a segment, or replace "/.." with "/"
+        if path.startswith("/../"):
+            if segments:
+                segments.pop()
+            return path[3:]
+        if path == "/..":
+            if segments:
+                segments.pop()
+            return ""
+
+        return None
+
+    @staticmethod
+    def _extract_next_segment(path: str) -> tuple[str, str]:
+        """Extract the next segment from the path.
+
+        Implements case 2E from RFC 3986 section 5.2.4.
+
+        :param path: The current path.
+
+        :return: Tuple of (segment, remaining_path).
+        """
+        slash_index = path.find("/", 1)
+        if slash_index == -1:
+            segment = path.removeprefix("/")
+            remaining_path = ""
+        else:
+            segment = path[1:slash_index]
+            remaining_path = path[slash_index:]
+
+        return segment, remaining_path
+
+    @staticmethod
     def remove_dot_segments(path: str) -> str:
         """Normalize the path components by removing dot-segments.
 
@@ -134,7 +183,6 @@ class HttpPath:
 
         :return: The normalized path.
         """
-
         # Early exit for empty paths
         if not path:
             return ""
@@ -153,33 +201,15 @@ class HttpPath:
             path = "/" + path
 
         while path:
-            if path.startswith("/./"):  # 2B
-                path = path[2:]
-                continue
-            if path == "/.":  # 2B
-                path = "/"
-                continue
-            if path.startswith("/../"):  # 2C
-                path = path[3:]
-                if segments:
-                    segments.pop()
-                continue
-            if path == "/..":  # 2C
-                path = ""
-                if segments:
-                    segments.pop()
+            # Try to match and process dot-segment patterns (2B and 2C)
+            new_path = HttpPath._process_dot_segment_pattern(path, segments)
+            if new_path is not None:
+                path = new_path
                 continue
 
-            # 2E
-            slash_index = path.find("/", 1)
-            if slash_index == -1:
-                segment = path.removeprefix("/")
-                path = ""
-            else:
-                segment = path[1:slash_index]
-                path = path[slash_index:]
+            # Extract next segment (2E)
+            segment, path = HttpPath._extract_next_segment(path)
             segments.append(segment)
-            continue
 
         output = "/".join(segments)
 
@@ -187,8 +217,6 @@ class HttpPath:
             output = "/" + output
 
         return output
-
-    # pylint: enable=too-many-branches
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "HttpPath":
         """Copy the HttpPath object.
