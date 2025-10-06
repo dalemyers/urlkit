@@ -99,6 +99,36 @@ url.path.pop_last() # http://example.com/foo/bar
 url.path.append(["baz", "one", "two"]) # http://example.com/foo/bar/baz/one/two
 ```
 
+#### PathLib-like / Operator
+
+You can use the `/` operator to build URLs in a clean, Pythonic way (similar to `pathlib.Path`):
+
+```python
+# Basic usage
+url = HttpUrl(scheme="https", host="api.example.com")
+endpoint = url / "v1" / "users" / "123"
+# Result: https://api.example.com/v1/users/123
+
+# Chaining with query parameters
+search_url = url / "v2" / "search"
+search_url.query["q"] = "python"
+search_url.query["limit"] = "10"
+# Result: https://api.example.com/v2/search?q=python&limit=10
+
+# Works with parsed URLs
+base = HttpUrl.parse("https://github.com/myuser")
+issues = base / "myrepo" / "issues"
+# Result: https://github.com/myuser/myrepo/issues
+
+# Original URL is not modified (immutable-like behavior)
+api = HttpUrl(scheme="https", host="api.example.com", path="/api")
+v1 = api / "v1"
+v2 = api / "v2"
+# api remains: https://api.example.com/api
+# v1: https://api.example.com/api/v1
+# v2: https://api.example.com/api/v2
+```
+
 ## Explicitly Non-Supported Features
 
 #### Multiple Query Parameters With Same Key

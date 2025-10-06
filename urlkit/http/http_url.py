@@ -188,6 +188,41 @@ class HttpUrl(URL):
         """
         return self._host is not None
 
+    def __truediv__(self, other: str | HttpPath) -> "HttpUrl":
+        """Support url / 'path' syntax like pathlib.Path.
+
+        This creates a new HttpUrl with the additional path segment(s) appended.
+        The original URL is not modified.
+
+        :param other: The path segment(s) to append. Can be a string or an HttpPath.
+
+        :return: A new HttpUrl with the path segment(s) appended.
+
+        :raises TypeError: If other is not a string or HttpPath.
+
+        Example:
+            >>> url = HttpUrl(scheme="http", host="example.com", path="/api")
+            >>> new_url = url / "v1" / "users"
+            >>> str(new_url)
+            'http://example.com/api/v1/users'
+        """
+        if not isinstance(other, (str, HttpPath)):
+            raise TypeError(
+                f"unsupported operand type(s) for /: 'HttpUrl' and '{type(other).__name__}'"
+            )
+
+        # Create a deep copy of the URL
+        new_url = copy.deepcopy(self)
+
+        # If there's no path yet, create an empty one (not root)
+        if new_url._path is None:
+            new_url._path = HttpPath("")
+
+        # Use the HttpPath's __truediv__ to append the segment(s)
+        new_url._path = new_url._path / other
+
+        return new_url
+
     @property
     def scheme(self) -> Literal["http", "https"]:
         """Get the URL scheme.

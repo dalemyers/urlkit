@@ -78,6 +78,7 @@ These Pythonic improvements were identified but not yet implemented:
 - **RFC compliance** is important for URL handling
 - **Backward compatibility** - don't break existing public APIs
 - The project uses **Python 3.9+ features** (including `|` for Union types) - If you see something different, the user should be informed.
+- Adding `cached_property` should only be done when the resulting code is cleaner and easier to understand. If it makes reasoning and/or comprehension more difficult, it should be avoided. 
 
 When making changes:
 1. Understand the existing patterns first
