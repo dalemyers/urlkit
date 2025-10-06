@@ -140,7 +140,7 @@ class HttpPath:
             return path
 
         initial_slash = path.startswith("/")
-        segments = []
+        segments: list[str] = []
 
         # Since we always assume a path has a prefix slash if not empty, we add
         # it here to make parsing easier.

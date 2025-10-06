@@ -61,10 +61,10 @@ class HttpUrl(URL):
         self.password = password
         self.host = host
         self.port = port
-        self.path = path
+        self.path = path  # type: ignore[assignment]
         # Needs to be set before query as we use it in the query setter
         self.query_options = query_options if query_options else QueryOptions()
-        self.query = query
+        self.query = query  # type: ignore[assignment]
         self.fragment = fragment
 
     # pylint: enable=too-many-arguments
@@ -181,12 +181,12 @@ class HttpUrl(URL):
 
         :raises ValueError: If the scheme is not 'http' or 'https'.
         """
-        value = value.lower()
+        normalized = value.lower()
 
-        if value not in ("http", "https"):
+        if normalized not in ("http", "https"):
             raise ValueError(f"Scheme: Expected 'http' or 'https', got {value}")
 
-        self._scheme = value
+        self._scheme = cast(Literal["http", "https"], normalized)
 
     @property
     def username(self) -> str | None:
@@ -304,7 +304,7 @@ class HttpUrl(URL):
         return output
 
     @property
-    def path(self) -> HttpPath:
+    def path(self) -> HttpPath | None:
         """Get the URL path.
 
         :return: The URL path as a HttpPath object.
@@ -341,7 +341,8 @@ class HttpUrl(URL):
 
     @query.setter
     def query(
-        self, value: dict[str, QueryValue | str | int | float | bool] | str | QuerySet | None
+        self,
+        value: dict[str, QueryValue | str | int | float | bool] | str | QuerySet | None,
     ) -> None:
         """Set the URL query.
 
@@ -465,7 +466,9 @@ class HttpUrl(URL):
         return _parse_http_or_https_url(string, query_options)
 
 
-def _parse_net_loc(net_loc: str) -> tuple[str | None, str | None, str | None, int | None]:
+def _parse_net_loc(
+    net_loc: str,
+) -> tuple[str | None, str | None, str | None, int | None]:
     """Parse a netloc into its components.
 
     :param net_loc: The netloc to parse.
