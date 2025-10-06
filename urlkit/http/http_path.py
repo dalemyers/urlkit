@@ -44,6 +44,8 @@ class HttpPathComponent:
 class HttpPath:
     """A class representing a path on a HTTP(S) URL."""
 
+    __slots__ = ("_components", "trailing_slash")
+
     _components: list[HttpPathComponent]
     trailing_slash: bool
 

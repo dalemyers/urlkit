@@ -12,6 +12,18 @@ from .http_path import HttpPath
 class HttpUrl(URL):
     """A HTTP(s) URL representation."""
 
+    __slots__ = (
+        "_scheme",
+        "_username",
+        "_password",
+        "_host",
+        "_port",
+        "_path",
+        "_query",
+        "_fragment",
+        "_query_options",
+    )
+
     _scheme: Literal["http", "https"]
     _username: str | None
     _password: str | None
