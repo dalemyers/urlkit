@@ -1,5 +1,7 @@
 """Tests for the HttpPath / operator (truediv)."""
 
+# pylint: disable=protected-access
+
 import pytest
 
 from urlkit.http.http_path import HttpPath
@@ -167,6 +169,7 @@ def test_truediv_normalization() -> None:
 
 def test_truediv_preserves_components_state() -> None:
     """Test / operator preserves encoding state of components."""
+    # pylint: disable=import-outside-toplevel,redefined-outer-name,reimported
     from urlkit.http.http_path import HttpPathComponent
 
     path = HttpPath("/api")

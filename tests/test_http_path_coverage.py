@@ -1,6 +1,6 @@
 """Additional tests for uncovered code paths in http_path."""
 
-import pytest
+# pylint: disable=protected-access
 
 from urlkit.http.http_path import HttpPath
 

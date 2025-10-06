@@ -162,7 +162,10 @@ def test_http_url_hash_with_dict_query() -> None:
 
 def test_http_url_hash_with_queryset() -> None:
     """Test hashing when _query is a QuerySet."""
-    from urlkit.http import QuerySet, QueryOptions
+    from urlkit.http import (  # pylint: disable=import-outside-toplevel,redefined-outer-name,reimported
+        QuerySet,
+        QueryOptions,
+    )
 
     qs = QuerySet(QueryOptions(), {"key": "value"})
     url = HttpUrl(scheme="http", host="example.com", query=qs)

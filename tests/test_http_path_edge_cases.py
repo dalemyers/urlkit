@@ -1,8 +1,8 @@
 """Test edge cases and uncovered paths in HttpPath."""
 
-import copy
+# pylint: disable=protected-access
 
-import pytest
+import copy
 
 from urlkit.http.http_path import HttpPath, HttpPathComponent
 
@@ -257,7 +257,7 @@ def test_http_path_equality_with_non_path() -> None:
     path = HttpPath("/a/b")
     assert path != "/a/b"
     assert path != ["a", "b"]
-    assert path != None
+    assert path is not None
     assert path != 123
 
 
@@ -285,7 +285,7 @@ def test_http_path_init_with_none_parameter() -> None:
     # This should be caught by type checking, but the code handles it defensively
     # We need to bypass type checking to test this path
     path = HttpPath.__new__(HttpPath)
-    path.__init__(None)  # type: ignore
+    HttpPath.__init__(path, None)  # type: ignore  # pylint: disable=unnecessary-dunder-call
     assert len(path._components) == 0
     assert path.trailing_slash is False
 
@@ -385,12 +385,16 @@ def test_http_path_pop_last_with_single_empty_component_detailed() -> None:
     This tests the specific edge case where after popping, we're left with
     exactly one component that has an empty value, which should be cleared.
     """
+    # pylint: disable=import-outside-toplevel,redefined-outer-name,reimported
     from urlkit.http.http_path import HttpPathComponent
 
     # Create a path with an empty component followed by a normal component
     # This can happen with paths like "//test"
     path = HttpPath.__new__(HttpPath)
-    path._components = [HttpPathComponent("", False), HttpPathComponent("test", False)]
+    path._components = [
+        HttpPathComponent("", False),
+        HttpPathComponent("test", False),
+    ]
     path.trailing_slash = False
 
     # Pop the last component

@@ -3,7 +3,6 @@
 import pytest
 
 from urlkit.http import HttpUrl, QueryOptions, QuerySet
-from utilities import assert_http_parse_expected_vs_url
 
 
 @pytest.mark.parametrize(
@@ -59,6 +58,7 @@ def test_parse_encoded_path_with_trailing_slash() -> None:
     url = "http://example.com/hello%20world/"
     parsed = HttpUrl.parse(url)
     assert str(parsed.path) == "/hello%20world/"
+    assert parsed.path is not None
     assert parsed.path.trailing_slash is True
 
 

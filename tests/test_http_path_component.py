@@ -2,8 +2,6 @@
 
 import copy
 
-import pytest
-
 from urlkit.http.http_path import HttpPathComponent
 
 
@@ -62,7 +60,7 @@ def test_http_path_component_equality_non_component() -> None:
     comp = HttpPathComponent("test", False)
     assert comp != "test"
     assert comp != 123
-    assert comp != None
+    assert comp is not None
     assert comp != ["test"]
 
 

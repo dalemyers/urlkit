@@ -44,7 +44,7 @@ def test_relative(url: str, expected: str) -> None:
 
 def test_parse_ipv6_missing_closing_bracket() -> None:
     """Test parsing IPv6 address without closing bracket."""
-    from urlkit.http import HttpUrl
+    from urlkit.http import HttpUrl  # pylint: disable=import-outside-toplevel
 
     with pytest.raises(ValueError) as exc_info:
         HttpUrl.parse("http://[::1/")
@@ -54,7 +54,7 @@ def test_parse_ipv6_missing_closing_bracket() -> None:
 
 def test_parse_ipv6_with_empty_port() -> None:
     """Test parsing IPv6 address with colon but empty port."""
-    from urlkit.http import HttpUrl
+    from urlkit.http import HttpUrl  # pylint: disable=import-outside-toplevel
 
     # IPv6 with trailing colon but no port number
     url = HttpUrl.parse("http://[::1]:/path")
@@ -65,7 +65,7 @@ def test_parse_ipv6_with_empty_port() -> None:
 
 def test_parse_ipv6_unexpected_characters_after_bracket() -> None:
     """Test parsing IPv6 with invalid characters after bracket."""
-    from urlkit.http import HttpUrl
+    from urlkit.http import HttpUrl  # pylint: disable=import-outside-toplevel
 
     with pytest.raises(ValueError) as exc_info:
         HttpUrl.parse("http://[::1]abc/path")

@@ -61,7 +61,8 @@ def test_fragment_property() -> None:
     assert a.fragment == "section1"
 
 
-def test_empty_fragment_distinct_from_absent():
+def test_empty_fragment_distinct_from_absent() -> None:
+    """Test that empty fragment (#) is distinct from no fragment."""
     u1 = _parse_http_or_https_url("http://example.com#")
     u2 = _parse_http_or_https_url("http://example.com")
     assert u1.fragment == ""

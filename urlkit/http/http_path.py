@@ -122,6 +122,7 @@ class HttpPath:
 
         return True
 
+    # pylint: disable=too-many-branches
     @staticmethod
     def remove_dot_segments(path: str) -> str:
         """Normalize the path components by removing dot-segments.
@@ -186,6 +187,8 @@ class HttpPath:
             output = "/" + output
 
         return output
+
+    # pylint: enable=too-many-branches
 
     def __deepcopy__(self, memo: dict[int, Any]) -> "HttpPath":
         """Copy the HttpPath object.

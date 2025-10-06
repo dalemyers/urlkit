@@ -1,7 +1,7 @@
 """URL utility library."""
 
 import copy
-from typing import Any, cast, Literal
+from typing import cast, Literal
 import urllib
 
 from ..url import URL
@@ -489,6 +489,7 @@ class HttpUrl(URL):
         return _parse_http_or_https_url(string, query_options)
 
 
+# pylint: disable=too-many-branches
 def _parse_net_loc(
     net_loc: str,
 ) -> tuple[str | None, str | None, str | None, int | None]:
@@ -574,6 +575,9 @@ def _parse_net_loc(
     password = urllib.parse.unquote(password) if password else None
 
     return username, password, host, port
+
+
+# pylint: enable=too-many-branches
 
 
 # pylint: disable=too-many-branches

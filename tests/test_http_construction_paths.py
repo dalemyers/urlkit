@@ -204,6 +204,7 @@ def test_http_path_append_pop() -> None:
     ],
 )
 def test_dot_segment_normalization(original_path: str, expected_normalized: str) -> None:
+    """Test that dot segments are normalized correctly in paths."""
     url = HttpUrl(scheme="http", host="example.com", path=original_path)
     assert str(url) == f"http://example.com{expected_normalized}"
 
@@ -220,6 +221,7 @@ def test_dot_segment_normalization(original_path: str, expected_normalized: str)
     ],
 )
 def test_path_preservation_cases(preserved_path: str) -> None:
+    """Test that certain path patterns are preserved without normalization."""
     url = HttpUrl(scheme="http", host="example.com", path=preserved_path)
     # Current implementation always emits with exactly given components joined by '/'
     # If later you store raw segments, ensure round-trip fidelity here.
@@ -228,6 +230,7 @@ def test_path_preservation_cases(preserved_path: str) -> None:
 
 # Mixed scenario ensuring fragment and query are unaffected by path normalization.
 def test_dot_segments_with_query_and_fragment() -> None:
+    """Test that query and fragment are preserved during path normalization."""
     url = HttpUrl(
         scheme="https",
         host="example.com",
@@ -250,6 +253,7 @@ def test_dot_segments_with_query_and_fragment() -> None:
     ],
 )
 def test_trailing_slash_preserved(original_path: str) -> None:
+    """Test that trailing slashes are preserved after normalization."""
     url = HttpUrl(scheme="http", host="example.com", path=original_path)
     # Expected canonical for all these is /a/b/c/ after normalization
     assert str(url) == "http://example.com/a/b/c/"
@@ -258,6 +262,7 @@ def test_trailing_slash_preserved(original_path: str) -> None:
 # Guard: a URL with no path stays no path vs root slash (depends on future
 # design choice). If you later distinguish empty vs '/', adjust this test.
 def test_empty_path_preserved_current_behavior() -> None:
+    """Test current behavior for URLs with no path specified."""
     url = HttpUrl(scheme="http", host="example.com")
     # Current behavior emits trailing slash; if you change design update this.
     assert str(url) in ("http://example.com/", "http://example.com")

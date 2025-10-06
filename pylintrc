@@ -23,8 +23,8 @@ good-names=f,i,j,k,ex,log,_,unit_test
 
 include-naming-hint=yes
 
-method-rgx=[a-z_][a-z0-9_]{2,50}$
-function-rgx=[a-z_][a-z0-9_]{2,50}$
+method-rgx=(?:test_[a-z0-9_]{2,200}|[a-z_][a-z0-9_]{2,50})$
+function-rgx=(?:test_[a-z0-9_]{2,200}|[a-z_][a-z0-9_]{2,50})$
 
 max-attributes=15
 

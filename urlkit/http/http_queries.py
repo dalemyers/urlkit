@@ -299,7 +299,7 @@ class QuerySet(dict[str, QueryValue | None]):
         if len(self.items()) != len(other.items()):
             return False
 
-        for k1 in self.keys():
+        for k1 in self.keys():  # pylint: disable=consider-using-dict-items
             if k1 not in other:
                 return False
             self_value = self[k1]

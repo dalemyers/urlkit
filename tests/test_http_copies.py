@@ -50,6 +50,7 @@ def test_copies() -> None:
     assert str(a.path) == "/some/path"
 
     h = a.copy()
+    assert h.path is not None
     h.path.append("another")
     assert str(a.path) == "/some/path"
 
