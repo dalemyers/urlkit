@@ -19,14 +19,26 @@ from urlkit.http import HttpUrl, HttpPath
     [
         ("http://example.com", {"scheme": "http", "host": "example.com"}),
         ("http://example.com/", {"scheme": "http", "host": "example.com", "path": "/"}),
-        ("http://example.com/abc", {"scheme": "http", "host": "example.com", "path": "/abc"}),
-        ("http://example.com/a/b", {"scheme": "http", "host": "example.com", "path": "/a/b"}),
-        ("http://example.com/a/b", {"scheme": "http", "host": "example.com", "path": "a/b"}),
+        (
+            "http://example.com/abc",
+            {"scheme": "http", "host": "example.com", "path": "/abc"},
+        ),
+        (
+            "http://example.com/a/b",
+            {"scheme": "http", "host": "example.com", "path": "/a/b"},
+        ),
+        (
+            "http://example.com/a/b",
+            {"scheme": "http", "host": "example.com", "path": "a/b"},
+        ),
         (
             "http://example.com/some/path",
             {"scheme": "http", "host": "example.com", "path": "/some/path"},
         ),
-        ("http://example.com/home", {"scheme": "http", "host": "example.com", "path": "/home"}),
+        (
+            "http://example.com/home",
+            {"scheme": "http", "host": "example.com", "path": "/home"},
+        ),
         ("http://example.com/", {"scheme": "http", "host": "example.com", "path": "/"}),
         # Unusual paths with encoded characters and non-ASCII components
         (
@@ -71,7 +83,10 @@ from urlkit.http import HttpUrl, HttpPath
             "http://example.com/a;b/c;d",
             {"scheme": "http", "host": "example.com", "path": "/a;b/c;d"},
         ),
-        ("http://example.com/a;;b", {"scheme": "http", "host": "example.com", "path": "/a;;b"}),
+        (
+            "http://example.com/a;;b",
+            {"scheme": "http", "host": "example.com", "path": "/a;;b"},
+        ),
     ],
 )
 def test_paths(expected: str, url_components: dict) -> None:
@@ -89,25 +104,40 @@ def test_path_property() -> None:
     """Test that reading back the property gives the same value."""
     a = HttpUrl(scheme="http", host="example.com", path="/section1")
     assert str(a.path) == "/section1"
-    assert a.path == HttpPath("/section1")
+    assert str(a.path) == str(HttpPath(("/section1")))
 
     a.path = "/Hello/World"
     assert str(a.path) == "/Hello/World"
-    assert a.path == HttpPath("/Hello/World")
+    assert str(a.path) == str(HttpPath(("/Hello/World")))
 
     a.path = HttpPath("World/Hello")
     assert str(a.path) == "/World/Hello"
-    assert a.path == HttpPath("/World/Hello")
+    assert str(a.path) == str(HttpPath(("/World/Hello")))
 
 
 def test_http_path_equality() -> None:
     """Test that we can compare paths."""
     assert HttpPath("/a/b/c") == HttpPath("/a/b/c")
-    assert HttpPath("/a/b/c") != HttpPath("/a/b/d")
-    assert HttpPath("/a/b/c") != HttpPath("/a/b")
-    assert HttpPath("/a/b/c") != HttpPath("/a/b/c/d")
-    assert str(HttpPath("/a/b/c")) != "a/b/c"
     assert str(HttpPath("/a/b/c")) == "/a/b/c"
+    assert str(HttpPath("/a/b/c")) == str(HttpPath(("/a/b/c")))
+
+    assert HttpPath("/a/b/c") != HttpPath("/a/b/d")
+    assert HttpPath("/a/b/c") != "/a/b/d"
+    assert str(HttpPath("/a/b/c")) != str(HttpPath(("/a/b/d")))
+
+    assert HttpPath("/a/b/c") != HttpPath("/a/b")
+    assert HttpPath("/a/b/c") != "/a/b"
+    assert str(HttpPath("/a/b/c")) != str(HttpPath(("/a/b")))
+
+    assert HttpPath("/a/b/c") != HttpPath("/a/b/c/d")
+    assert HttpPath("/a/b/c") != "/a/b/c/d"
+    assert str(HttpPath("/a/b/c")) != str(HttpPath(("/a/b/c/d")))
+
+    assert str(HttpPath("/a/b/c/")) != "/a/b/c"
+    assert str(HttpPath("/a/b/c/")) == "/a/b/c/"
+
+    assert str(HttpPath("/a/b/c")) == "/a/b/c"
+    assert str(HttpPath("/a/b/c")) != "/a/b/c/"
 
 
 def test_http_path_append_pop() -> None:
@@ -115,22 +145,31 @@ def test_http_path_append_pop() -> None:
     path = HttpPath("")
     path.append("a")
     assert path == HttpPath("a")
+    assert str(path) == str(HttpPath(("a")))
     path.append("b")
     assert path == HttpPath("/a/b")
+    assert str(path) == str(HttpPath(("/a/b")))
     path.append("c")
     assert path == HttpPath("/a/b/c")
+    assert str(path) == str(HttpPath(("/a/b/c")))
     path.append("d/e")
     assert path == HttpPath("/a/b/c/d/e")
+    assert str(path) == str(HttpPath(("/a/b/c/d/e")))
     path.pop_last()
     assert path == HttpPath("/a/b/c/d")
+    assert str(path) == str(HttpPath(("/a/b/c/d")))
     path.pop_last()
     assert path == HttpPath("/a/b/c")
+    assert str(path) == str(HttpPath(("/a/b/c")))
     path.pop_last()
     assert path == HttpPath("/a/b")
+    assert str(path) == str(HttpPath(("/a/b")))
     path.pop_last()
     assert path == HttpPath("/a")
+    assert str(path) == str(HttpPath(("/a")))
     path.pop_last()
     assert path == HttpPath("")
+    assert str(path) == str(HttpPath(("")))
 
     with pytest.raises(IndexError):
         path.pop_last()
@@ -158,10 +197,15 @@ def test_http_path_append_pop() -> None:
         ("/a/..", "/"),  # Removing last segment
         ("/a/../", "/"),  # Same but with slash
         ("/a/b/../../../../c", "/c"),  # Over-backtracking collapses to root then adds c
-        ("/a//b/./c/../d", "/a//b/d"),  # Only dot segments removed; double slash preserved
+        (
+            "/a//b/./c/../d",
+            "/a//b/d",
+        ),  # Only dot segments removed; double slash preserved
     ],
 )
-def test_dot_segment_normalization(original_path: str, expected_normalized: str) -> None:
+def test_dot_segment_normalization(
+    original_path: str, expected_normalized: str
+) -> None:
     url = HttpUrl(scheme="http", host="example.com", path=original_path)
     assert str(url) == f"http://example.com{expected_normalized}"
 
@@ -228,7 +272,9 @@ def test_empty_path_preserved_current_behavior() -> None:
         ("mid/content=5/../6", "/mid/6"),
     ],
 )
-def test_dot_segment_normalization_abnormal_examples(original_path: str, expected_normalized: str) -> None:
+def test_dot_segment_normalization_abnormal_examples(
+    original_path: str, expected_normalized: str
+) -> None:
     """
     Test dot-segment normalization for relative paths.
 
@@ -236,6 +282,7 @@ def test_dot_segment_normalization_abnormal_examples(original_path: str, expecte
     """
     url = HttpUrl(scheme="http", host="example.com", path=original_path)
     assert str(url) == f"http://example.com{expected_normalized}"
+
 
 def test_empty_string_path_is_not_root() -> None:
     """Test that an empty string for a path is not the same as the root path."""
@@ -248,6 +295,7 @@ def test_empty_string_path_is_not_root() -> None:
 
     url_root = HttpUrl(scheme="http", host="example.com", path="/")
     assert str(url_root) == "http://example.com/"
+
 
 def test_http_path_append_with_dot_segments() -> None:
     """Test that appending paths with dot segments normalizes the path."""

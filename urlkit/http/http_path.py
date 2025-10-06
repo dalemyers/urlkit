@@ -1,12 +1,67 @@
 """HTTP Path utilities."""
 
 from typing import Any
+import urllib.parse
+
+
+class HttpPathComponent:
+    """A class representing a single component of a HTTP(S) URL path."""
+
+    value: str
+    encoded: bool
+
+    def __init__(self, value: str, encoded: bool) -> None:
+        """Initialise the HttpPathComponent object.
+
+        :param value: The value of the path component.
+        :param encoded: Whether the value is already percent-encoded.
+        """
+        self.value = value
+        self.encoded = encoded
+
+    def __deepcopy__(self, memo: dict[int, Any]) -> "HttpPathComponent":
+        """Copy the HttpPathComponent object.
+
+        :param memo: The memo dictionary.
+
+        :return: A copy of the HttpPathComponent object.
+        """
+
+        return HttpPathComponent(self.value, self.encoded)
+
+    def __eq__(self, other: object) -> bool:
+        """Check if two HttpPathComponent objects are equal.
+
+        :param other: The object to compare to.
+
+        :return: True if the objects are equal, False otherwise.
+        """
+
+        if not isinstance(other, HttpPathComponent):
+            return False
+
+        self_encoded = (
+            urllib.parse.quote(self.value) if not self.encoded else self.value
+        )
+        other_encoded = (
+            urllib.parse.quote(other.value) if not other.encoded else other.value
+        )
+
+        return self_encoded == other_encoded
+
+    def __hash__(self) -> int:
+        """Get the hash of the HttpPathComponent object.
+
+        :return: The hash of the HttpPathComponent object.
+        """
+
+        return hash(urllib.parse.quote(self.value) if not self.encoded else self.value)
 
 
 class HttpPath:
     """A class representing a path on a HTTP(S) URL."""
 
-    components: list[str]
+    _components: list[HttpPathComponent]
     trailing_slash: bool
 
     def __init__(
@@ -20,7 +75,7 @@ class HttpPath:
                            character.
         """
         if path is None:
-            self.components = []
+            self._components = []
             self.trailing_slash = False
         else:
             self._normalize_with_path(path)
@@ -37,12 +92,49 @@ class HttpPath:
         """
 
         path = HttpPath.remove_dot_segments(path)
-        self.trailing_slash = path.endswith("/") and len(path) > 1
-        path = path[1:] if path.startswith("/") else path
-        path = path[:-1] if self.trailing_slash else path
-        self.components = path.split("/")
-        if self.components == [""]:
-            self.components = []
+        if path == "/":
+            self._components = []
+            self.trailing_slash = True
+        else:
+            self.trailing_slash = path.endswith("/") and len(path) > 1
+            path = path[1:] if path.startswith("/") else path
+            path = path[:-1] if self.trailing_slash else path
+            components = path.split("/")
+            self._components = []
+            for c in components:
+                # Check if this component appears to be already percent-encoded
+                # by checking if it contains valid percent-encoded sequences
+                encoded = self._is_percent_encoded(c)
+                self._components.append(HttpPathComponent(c, encoded))
+            if self._components == [HttpPathComponent("", False)]:
+                self._components = []
+
+    @staticmethod
+    def _is_percent_encoded(s: str) -> bool:
+        """Check if a string appears to be already percent-encoded.
+
+        :param s: The string to check.
+
+        :return: True if the string contains percent-encoded sequences.
+        """
+        if "%" not in s:
+            return False
+
+        # Check if all % signs are followed by valid hex digits
+        i = 0
+        while i < len(s):
+            if s[i] == "%":
+                if i + 2 >= len(s):
+                    return False
+                try:
+                    int(s[i + 1 : i + 3], 16)
+                    i += 3
+                except ValueError:
+                    return False
+            else:
+                i += 1
+
+        return True
 
     @staticmethod
     def remove_dot_segments(path: str) -> str:
@@ -126,7 +218,7 @@ class HttpPath:
         """
 
         c = HttpPath("")
-        c.components = self.components[:]
+        c._components = self._components[:]
         c.trailing_slash = self.trailing_slash
 
         return c
@@ -142,7 +234,10 @@ class HttpPath:
         if not isinstance(other, HttpPath):
             return False
 
-        return self.components == other.components
+        return (
+            self._components == other._components
+            and self.trailing_slash == other.trailing_slash
+        )
 
     def __hash__(self) -> int:
         """Get the hash of the HttpPath object.
@@ -150,8 +245,8 @@ class HttpPath:
         :return: The hash of the HttpPath object.
         """
 
-        if len(self.components) > 0:
-            return hash(tuple(self.components))
+        if len(self._components) > 0:
+            return hash(tuple(self._components))
 
         return 0
 
@@ -161,7 +256,15 @@ class HttpPath:
         :return: The string representation of the path.
         """
 
-        path = "/" + "/".join(self.components)
+        if len(self._components) == 0:
+            return "/" if self.trailing_slash else ""
+
+        path = "/" + "/".join(
+            component.value
+            if component.encoded
+            else urllib.parse.quote(component.value, safe=";")
+            for component in self._components
+        )
 
         if self.trailing_slash:
             path += "/"
@@ -176,16 +279,18 @@ class HttpPath:
                         string will be split into separate components.
         """
 
-        if len(self.components) == 1 and self.components[0] == "":
-            self.components = []
+        if len(self._components) == 1 and self._components[0].value == "":
+            self._components = []
 
         if isinstance(subpath, list):
             for component in subpath:
                 self.append(component)
         elif "/" in subpath:
-            self.components += subpath.split("/")
+            self._components += [
+                HttpPathComponent(c, False) for c in subpath.split("/")
+            ]
         else:
-            self.components.append(subpath)
+            self._components.append(HttpPathComponent(subpath, False))
 
         self._normalize_with_path(str(self))
 
@@ -195,10 +300,10 @@ class HttpPath:
         :return: The last component of the path.
         """
 
-        value = self.components.pop()
+        value = self._components.pop().value
 
-        if len(self.components) == 1 and self.components[0] == "":
-            self.components = []
+        if len(self._components) == 1 and self._components[0].value == "":
+            self._components = []
 
         self._normalize_with_path(str(self))
 
