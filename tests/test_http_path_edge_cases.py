@@ -400,3 +400,26 @@ def test_http_path_pop_last_with_single_empty_component_detailed() -> None:
     # After popping, we should have cleared the empty component
     assert len(path._components) == 0
     assert str(path) == ""
+
+
+def test_http_path_truthiness() -> None:
+    """Test __bool__ method for HttpPath."""
+    # Empty path is falsy
+    empty_path = HttpPath("")
+    assert bool(empty_path) is False
+    assert not empty_path  # Direct truthiness check
+
+    # Root path (just '/') is truthy because it has a trailing slash
+    root_path = HttpPath("/")
+    assert bool(root_path) is True
+    assert root_path  # Direct truthiness check
+
+    # Path with content is truthy
+    path_with_content = HttpPath("/test")
+    assert bool(path_with_content) is True
+    assert path_with_content  # Direct truthiness check
+
+    # Path with multiple segments is truthy
+    multi_segment_path = HttpPath("/test/path/here")
+    assert bool(multi_segment_path) is True
+    assert multi_segment_path  # Direct truthiness check

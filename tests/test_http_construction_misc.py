@@ -120,3 +120,20 @@ def test_hash() -> None:
     assert hash(
         HttpUrl(scheme="https", host="example.com", query={"one": "1", "two": "2"})
     ) == hash(HttpUrl(scheme="https", host="example.com", query={"two": "2", "one": "1"}))
+
+
+def test_http_url_truthiness() -> None:
+    """Test __bool__ method for HttpUrl."""
+    # URL with host is truthy
+    url_with_host = HttpUrl(scheme="http", host="example.com")
+    assert bool(url_with_host) is True
+    assert url_with_host  # Direct truthiness check
+
+    # URL without host is falsy
+    url_without_host = HttpUrl(scheme="http", host=None)
+    assert bool(url_without_host) is False
+    assert not url_without_host  # Direct truthiness check
+
+    # Complex URL is truthy if it has a host
+    complex_url = HttpUrl(scheme="https", host="example.com", path="/test", query={"key": "value"})
+    assert bool(complex_url) is True

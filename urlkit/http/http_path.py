@@ -224,6 +224,16 @@ class HttpPath:
 
         return 0
 
+    def __bool__(self) -> bool:
+        """Check if the path is non-empty.
+
+        A path is considered truthy if it has components or a trailing slash.
+        An empty path (no components and no trailing slash) is falsy.
+
+        :return: True if the path has content, False otherwise.
+        """
+        return bool(self._components) or self.trailing_slash
+
     def __str__(self) -> str:
         """Get the string representation of the path.
 

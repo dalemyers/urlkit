@@ -177,6 +177,17 @@ class HttpUrl(URL):
             )
         )
 
+    def __bool__(self) -> bool:
+        """Check if the URL has meaningful content.
+
+        A URL is considered truthy if it has a host (even if it's an empty string).
+        This is because a URL with just a scheme like "http://" is not particularly
+        useful, but "http://example.com" is valid.
+
+        :return: True if the URL has a host, False otherwise.
+        """
+        return self._host is not None
+
     @property
     def scheme(self) -> Literal["http", "https"]:
         """Get the URL scheme.
