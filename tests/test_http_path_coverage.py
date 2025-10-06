@@ -118,3 +118,40 @@ def test_http_path_with_only_dots() -> None:
 
     p4 = HttpPath("../..")
     assert str(p4) == ""
+
+
+def test_http_path_normalization_additional_edge_cases() -> None:
+    """Test additional path normalization edge cases."""
+    # Path with just current directory
+    p1 = HttpPath(".")
+    assert str(p1) == ""
+
+    # Path with just parent directory
+    p2 = HttpPath("..")
+    assert str(p2) == ""
+
+    # Path starting with ../
+    p3 = HttpPath("../foo")
+    assert str(p3) == "/foo"
+
+    # Path starting with ./
+    p4 = HttpPath("./foo")
+    assert str(p4) == "/foo"
+
+
+def test_http_path_pop_until_empty() -> None:
+    """Test popping path components until completely empty."""
+    path = HttpPath("/a/b/c")
+
+    popped1 = path.pop_last()
+    assert popped1 == "c"
+
+    popped2 = path.pop_last()
+    assert popped2 == "b"
+
+    popped3 = path.pop_last()
+    assert popped3 == "a"
+
+    # Path should now be empty
+    assert str(path) == ""
+    assert len(path._components) == 0

@@ -278,3 +278,125 @@ def test_http_path_append_maintains_encoding_state() -> None:
     path_str = str(path)
     # The space in "b c" should be encoded when converting to string
     assert "%20" in path_str
+
+
+def test_http_path_init_with_none_parameter() -> None:
+    """Test HttpPath initialization with None (defensive code)."""
+    # This should be caught by type checking, but the code handles it defensively
+    # We need to bypass type checking to test this path
+    path = HttpPath.__new__(HttpPath)
+    path.__init__(None)  # type: ignore
+    assert len(path._components) == 0
+    assert path.trailing_slash is False
+
+
+def test_remove_dot_segments_leading_relative_parent() -> None:
+    """Test remove_dot_segments with leading ../."""
+    result = HttpPath.remove_dot_segments("../a/b")
+    assert result == "a/b"
+
+    result2 = HttpPath.remove_dot_segments("../../a/b")
+    assert result2 == "a/b"
+
+    result3 = HttpPath.remove_dot_segments("../../../a")
+    assert result3 == "a"
+
+    # Multiple leading ../
+    result4 = HttpPath.remove_dot_segments("../../../../a/b/c")
+    assert result4 == "a/b/c"
+
+
+def test_remove_dot_segments_leading_relative_current() -> None:
+    """Test remove_dot_segments with leading ./."""
+    result = HttpPath.remove_dot_segments("./a/b")
+    assert result == "a/b"
+
+    result2 = HttpPath.remove_dot_segments("././a")
+    assert result2 == "a"
+
+    result3 = HttpPath.remove_dot_segments("./././a/b")
+    assert result3 == "a/b"
+
+    # Multiple leading ./
+    result4 = HttpPath.remove_dot_segments("././././a/b/c")
+    assert result4 == "a/b/c"
+
+
+def test_remove_dot_segments_just_dots() -> None:
+    """Test remove_dot_segments with just . or ..."""
+    result_dot = HttpPath.remove_dot_segments(".")
+    assert result_dot == ""
+
+    result_dotdot = HttpPath.remove_dot_segments("..")
+    assert result_dotdot == ""
+
+
+def test_remove_dot_segments_mixed_patterns() -> None:
+    """Test paths with mixed dot segment patterns."""
+    # Mix of ../  and other segments
+    result1 = HttpPath.remove_dot_segments("../foo/../bar")
+    assert result1 == "bar"
+
+    # Mix of ./ and other segments
+    result2 = HttpPath.remove_dot_segments("./foo/./bar")
+    assert result2 == "foo/bar"
+
+    # Just dots at the end
+    result3 = HttpPath.remove_dot_segments("foo/bar/..")
+    assert result3 == "foo"
+
+
+def test_remove_dot_segments_sequential_dots() -> None:
+    """Test sequential dot patterns."""
+    # Sequential ../ at the start
+    result = HttpPath.remove_dot_segments("../../../a")
+    assert result == "a"
+
+    # Sequential ./ at the start
+    result2 = HttpPath.remove_dot_segments("./././a")
+    assert result2 == "a"
+
+    # Just dots that should be removed
+    result3 = HttpPath.remove_dot_segments("..")
+    assert result3 == ""
+
+    result4 = HttpPath.remove_dot_segments(".")
+    assert result4 == ""
+
+
+def test_http_path_pop_last_single_empty_component() -> None:
+    """Test pop_last when single empty component remains."""
+    # Create a specific scenario where we have a single empty component
+    path = HttpPath("/a")
+    # After popping 'a', we might have [""] left
+    path.pop_last()
+
+    # The path should now be empty
+    assert str(path) == ""
+
+    # Now test with a path that definitely creates the edge case
+    path2 = HttpPath("//a")  # Leading empty component
+    assert str(path2) == "//a"  # Should preserve the empty components
+
+
+def test_http_path_pop_last_with_single_empty_component_detailed() -> None:
+    """Test pop_last edge case where single empty component should be cleared.
+
+    This tests the specific edge case where after popping, we're left with
+    exactly one component that has an empty value, which should be cleared.
+    """
+    from urlkit.http.http_path import HttpPathComponent
+
+    # Create a path with an empty component followed by a normal component
+    # This can happen with paths like "//test"
+    path = HttpPath.__new__(HttpPath)
+    path._components = [HttpPathComponent("", False), HttpPathComponent("test", False)]
+    path.trailing_slash = False
+
+    # Pop the last component
+    result = path.pop_last()
+    assert result == "test"
+
+    # After popping, we should have cleared the empty component
+    assert len(path._components) == 0
+    assert str(path) == ""

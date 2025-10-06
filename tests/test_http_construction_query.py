@@ -502,6 +502,17 @@ def test_query_set_equality() -> None:
     )
     assert QuerySet(QueryOptions(), {"foo": "bar"}) != object()
 
+
+def test_http_url_query_setter_invalid_type() -> None:
+    """Test query setter with invalid type."""
+    url = HttpUrl(scheme="http", host="example.com")
+
+    with pytest.raises(TypeError) as exc_info:
+        url.query = 123  # type: ignore
+
+    assert "Query: Expected dict, str, or None, got" in str(exc_info.value)
+
+
 def test_decode_query_value_invalid_space_encoding() -> None:
     """Test that parsing a query string with invalid space encoding fails."""
     url = HttpUrl(scheme="http", host="example.com")

@@ -27,12 +27,8 @@ class HttpPathComponent:
         if not isinstance(other, HttpPathComponent):
             return False
 
-        self_encoded = (
-            urllib.parse.quote(self.value) if not self.encoded else self.value
-        )
-        other_encoded = (
-            urllib.parse.quote(other.value) if not other.encoded else other.value
-        )
+        self_encoded = urllib.parse.quote(self.value) if not self.encoded else self.value
+        other_encoded = urllib.parse.quote(other.value) if not other.encoded else other.value
 
         return self_encoded == other_encoded
 
@@ -149,15 +145,10 @@ class HttpPath:
         # Since we always assume a path has a prefix slash if not empty, we add
         # it here to make parsing easier.
         if not path.startswith("/"):
+            # This avoids case 2A and 2D since we always have a leading slash
             path = "/" + path
 
         while path:
-            if path.startswith("../"):  # 2A
-                path = path[3:]
-                continue
-            if path.startswith("./"):  # 2A
-                path = path[2:]
-                continue
             if path.startswith("/./"):  # 2B
                 path = path[2:]
                 continue
@@ -173,9 +164,6 @@ class HttpPath:
                 path = ""
                 if segments:
                     segments.pop()
-                continue
-            if path == "." or path == "..":  # 2D
-                path = ""
                 continue
 
             # 2E
@@ -221,10 +209,7 @@ class HttpPath:
         if not isinstance(other, HttpPath):
             return False
 
-        return (
-            self._components == other._components
-            and self.trailing_slash == other.trailing_slash
-        )
+        return self._components == other._components and self.trailing_slash == other.trailing_slash
 
     def __hash__(self) -> int:
         """Get the hash of the HttpPath object.
@@ -247,9 +232,7 @@ class HttpPath:
             return "/" if self.trailing_slash else ""
 
         path = "/" + "/".join(
-            component.value
-            if component.encoded
-            else urllib.parse.quote(component.value, safe=";")
+            component.value if component.encoded else urllib.parse.quote(component.value, safe=";")
             for component in self._components
         )
 
@@ -273,9 +256,7 @@ class HttpPath:
             for component in subpath:
                 self.append(component)
         elif "/" in subpath:
-            self._components += [
-                HttpPathComponent(c, False) for c in subpath.split("/")
-            ]
+            self._components += [HttpPathComponent(c, False) for c in subpath.split("/")]
         else:
             self._components.append(HttpPathComponent(subpath, False))
 

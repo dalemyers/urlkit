@@ -151,11 +151,6 @@ class HttpUrl(URL):
     def __hash__(self) -> int:
         """Get the hash of the URL object."""
 
-        if isinstance(self._query, dict):
-            query_hashable: Any = frozenset(self._query.items())
-        else:
-            query_hashable = self._query
-
         return hash(
             (
                 self._scheme,
@@ -164,7 +159,7 @@ class HttpUrl(URL):
                 self._host,
                 self._port,
                 self._path,
-                query_hashable,
+                frozenset(self._query.items()),
                 self._fragment,
                 self._query_options,
             )

@@ -133,3 +133,27 @@ def test_http_url_hash_difference_when_component_differs() -> None:
     b = HttpUrl(scheme="http", host="example.com", query={"k": "2"})
     assert a != b
     assert hash(a) != hash(b)
+
+
+def test_http_url_hash_with_dict_query() -> None:
+    """Test hashing when _query is a dict."""
+    url = HttpUrl(scheme="http", host="example.com", query={"key": "value"})
+
+    # Test that hash works
+    hash_value = hash(url)
+    assert isinstance(hash_value, int)
+
+    # Test with another URL to ensure hash consistency
+    url2 = HttpUrl(scheme="http", host="example.com", query={"key": "value"})
+    assert hash(url) == hash(url2)
+
+
+def test_http_url_hash_with_queryset() -> None:
+    """Test hashing when _query is a QuerySet."""
+    from urlkit.http import QuerySet, QueryOptions
+
+    qs = QuerySet(QueryOptions(), {"key": "value"})
+    url = HttpUrl(scheme="http", host="example.com", query=qs)
+
+    hash_value = hash(url)
+    assert isinstance(hash_value, int)
