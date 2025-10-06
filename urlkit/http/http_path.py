@@ -83,8 +83,8 @@ class HttpPath:
             self.trailing_slash = True
         else:
             self.trailing_slash = path.endswith("/") and len(path) > 1
-            path = path[1:] if path.startswith("/") else path
-            path = path[:-1] if self.trailing_slash else path
+            path = path.removeprefix("/")
+            path = path.removesuffix("/") if self.trailing_slash else path
             components = path.split("/")
             self._components = []
             for c in components:
@@ -173,7 +173,7 @@ class HttpPath:
             # 2E
             slash_index = path.find("/", 1)
             if slash_index == -1:
-                segment = path[1:]
+                segment = path.removeprefix("/")
                 path = ""
             else:
                 segment = path[1:slash_index]

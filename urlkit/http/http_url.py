@@ -583,7 +583,7 @@ def _parse_net_loc(
         port_string = host_and_port[closing_bracket_index + 1 :]
 
         if port_string.startswith(":"):
-            port_string = port_string[1:]
+            port_string = port_string.removeprefix(":")
             if len(port_string) == 0:
                 port = None
             else:
