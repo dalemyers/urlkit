@@ -1,0 +1,129 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test Python ${{ matrix.python-version }}
+    runs-on: macos-latest
+    
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12"]
+      max-parallel: 4
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: latest
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+      
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+      
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+      
+      - name: Install project
+        run: poetry install --no-interaction
+      
+      - name: Run Black
+        run: |
+          source .venv/bin/activate
+          python -m black --check --line-length 100 urlkit tests
+      
+      - name: Run Pylint
+        run: |
+          source .venv/bin/activate
+          python -m pylint --rcfile=pylintrc urlkit tests
+      
+      - name: Run mypy
+        run: |
+          source .venv/bin/activate
+          python -m mypy --ignore-missing-imports urlkit/ tests/
+      
+      - name: Run pytest
+        run: |
+          source .venv/bin/activate
+          python -m pytest tests --cov=urlkit --cov-report html --cov-report xml --doctest-modules --junitxml=junit/test-results.xml
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.python-version }}
+          path: junit/test-results.xml
+      
+      - name: Upload coverage HTML report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-html-${{ matrix.python-version }}
+          path: htmlcov/
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+  
+  # Deploy coverage report to GitHub Pages (uses coverage from latest Python version)
+  deploy-coverage:
+    name: Deploy Coverage to GitHub Pages
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    
+    permissions:
+      pages: write
+      id-token: write
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+      - name: Download all coverage HTML reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-html-*
+          path: coverage-artifacts
+      
+      - name: Select latest Python version coverage
+        run: |
+          # Find the coverage report from the highest Python version
+          LATEST_DIR=$(ls -d coverage-artifacts/coverage-html-* | sort -V | tail -1)
+          echo "Using coverage from: $LATEST_DIR"
+          mv "$LATEST_DIR" htmlcov
+      
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: htmlcov
+      
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
